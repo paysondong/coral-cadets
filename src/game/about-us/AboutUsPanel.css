@@ -1,0 +1,42 @@
+.about-us-panel {
+  width: 91vw;
+  height: 117vw;
+  margin-left: 4.5vw;
+  margin-top: 40vw;
+  position: fixed;
+  display: flex;
+  flex-direction: column;
+  top: 0;
+}
+
+.about-us-panel-background {
+  width: 100%;
+  position: absolute;
+  height: 100%;
+  left: 0;
+}
+
+.about-us-panel-close {
+  width: 8.12vw;
+  height: 8.3vw;
+  position: relative;
+  align-self: flex-end;
+  margin-top: 5.2vw;
+  margin-right: 6.7vw;
+}
+
+.about-us-panel-title {
+  width: 50vw;
+  height: 14.44vw;
+  position: relative;
+  align-self: center;
+  margin-top: -1.624vw;
+}
+
+.about-us-panel-content {
+  width: 78.46vw;
+  height: 69.49vw;
+  position: relative;
+  align-self: center;
+  margin-top: 2.22vw;
+}

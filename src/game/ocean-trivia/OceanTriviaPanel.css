@@ -1,0 +1,84 @@
+.ocean-trivia-panel {
+  width: 91vw;
+  height: 117vw;
+  margin-left: 4.5vw;
+  margin-top: 40vw;
+  position: fixed;
+  display: flex;
+  flex-direction: column;
+  top: 0;
+}
+
+.ocean-trivia-panel-background {
+  width: 100%;
+  position: absolute;
+  height: 100%;
+  left: 0;
+  z-index: -1;
+}
+
+.ocean-trivia-panel-close {
+  width: 8.12vw;
+  height: 8.3vw;
+  position: relative;
+  align-self: flex-end;
+  margin-top: 5.2vw;
+  margin-right: 6.7vw;
+}
+
+.ocean-trivia-panel-title {
+  width: 44.27vw;
+  height: 7.6vw;
+  position: relative;
+  align-self: center;
+  margin-top: 7.265vw;
+}
+
+.ocean-trivia-panel-content {
+  width: 73.5vw;
+  height: 21.71vw;
+  position: relative;
+  align-self: center;
+  margin-top: 11.71vw;
+}
+
+.ocean-trivia-panel-topics {
+  margin-left: 5vw;
+  margin-right: 5vw;
+  margin-top: 2vw;
+}
+
+.ocean-trivia-panel-topic-container {
+  position: relative;
+  text-align: center;
+  color: white;
+}
+
+.ocean-trivia-panel-topic-container div {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 8vw;
+}
+.ocean-trivia-panel-topic-close {
+  width: 8.12vw;
+  height: 8.3vw;
+  position: relative;
+  align-self: flex-end;
+  margin-top: 10vw;
+  margin-right: 40vw;
+}
+
+.ocean-trivia-panel-topic  {
+  margin-top: 10vw;
+  margin-left: 5vw;
+  margin-right: 5vw;
+  font-family: "Calibri";
+  font-size: 6vw;
+  color:darkblue;
+}
+
+.ocean-trivia-panel-topic-container-disabled {
+  opacity: .5;
+}

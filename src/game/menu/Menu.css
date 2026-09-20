@@ -1,0 +1,103 @@
+.menu-container {
+  width: 84.4vw;
+  position: fixed;
+  display: flex;
+  flex-direction: row;
+  left: 7.78vw;
+  bottom: 5.38vw;
+  justify-content: space-between;
+}
+
+.bubble-container {
+  width: 22.82vw;
+  height: 22.82vw;
+  position: relative;
+}
+
+.bubble-image {
+  width: 22.82vw;
+  position: absolute;
+  left: 0;
+  top: 0;
+  height: 22.82vw;
+}
+
+.new-game-image {
+  width: 16.07vw;
+  height: 11.54vw;
+  position: absolute;
+  top: 5.64vw;
+  left: 3.33vw;
+}
+
+.new-game-text-image {
+  width: 22.82vw;
+  height: 5.2vw;
+  position: absolute;
+  top: 17.436vw;
+  left: 0;
+}
+
+.new-game-image {
+  width: 16.07vw;
+  height: 11.54vw;
+  position: absolute;
+  top: 5.64vw;
+  left: 3.33vw;
+}
+
+.new-game-text-image {
+  width: 22.82vw;
+  height: 5.2vw;
+  position: absolute;
+  top: 17.436vw;
+  left: 0;
+}
+
+.eco-points-image {
+  width: 10.6vw;
+  height: 13.76vw;
+  position: absolute;
+  top: 4.36vw;
+  left: 6.41vw;
+}
+
+.eco-points-text-image {
+  width: 20.62vw;
+  height: 5.2vw;
+  position: absolute;
+  top: 17.436vw;
+  left: 0.6vw;
+}
+
+.ocean-trivia-image {
+  width: 14.53vw;
+  height: 14.36vw;
+  position: absolute;
+  top: 4.36vw;
+  left: 4.1vw;
+}
+
+.ocean-trivia-text-image {
+  width: 22.82vw;
+  height: 5.2vw;
+  position: absolute;
+  top: 17.436vw;
+  left: 0;
+}
+
+.our-sponsor-image {
+  width: 17.6vw;
+  height: 15.3vw;
+  position: absolute;
+  top: 4.1vw;
+  left: 3.077vw;
+}
+
+.our-sponsor-text-image {
+  width: 24.02vw;
+  height: 6.2vw;
+  position: absolute;
+  top: 17.436vw;
+  left: 0;
+}

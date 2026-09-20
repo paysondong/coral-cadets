@@ -1,0 +1,42 @@
+.information-board {
+  width: 91vw;
+  height: 117vw;
+  margin-left: 4.5vw;
+  margin-top: 40vw;
+  position: fixed;
+  display: flex;
+  flex-direction: column;
+  top: 0;
+}
+
+.information-board-background {
+  width: 100%;
+  position: absolute;
+  height: 100%;
+  left: 0;
+}
+
+.information-board-close {
+  width: 8.12vw;
+  height: 8.3vw;
+  position: relative;
+  align-self: flex-end;
+  margin-top: 5.2vw;
+  margin-right: 6.7vw;
+}
+
+.information-board-title {
+  width: 50vw;
+  height: 9.7vw;
+  position: relative;
+  align-self: center;
+  margin-top: 7.1vw;
+}
+
+.information-board-content {
+  width: 72.3vw;
+  height: 38.5vw;
+  position: relative;
+  align-self: center;
+  margin-top: 9.48vw;
+}

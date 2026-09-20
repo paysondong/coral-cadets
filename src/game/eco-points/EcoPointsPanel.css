@@ -1,0 +1,73 @@
+.eco-points-panel {
+  width: 82.05vw;
+  height: 105.8vw;
+  margin-left: 9.9vw;
+  margin-top: 59vw;
+  position: fixed;
+  display: flex;
+  flex-direction: column;
+  top: 0;
+}
+
+.eco-points-panel-background {
+  width: 100%;
+  position: absolute;
+  height: 100%;
+  left: 0;
+  z-index: -1;
+}
+
+.eco-points-panel-close {
+  width: 8.12vw;
+  height: 8.3vw;
+  position: relative;
+  align-self: flex-end;
+  margin-top: 5.2vw;
+  margin-right: 6.7vw;
+}
+
+.eco-points-panel-title {
+  width: 52.05vw;
+  height: 10.77vw;
+  position: relative;
+  align-self: center;
+  margin-top: -0.34vw;
+}
+
+.eco-points-panel-button-progress-below {
+  width: 55.38vw;
+  height: 5.13vw;
+  position: relative;
+  align-self: center;
+}
+
+.eco-points-panel-button {
+  width: 46.41vw;
+  height: 14.79vw;
+  position: absolute;
+  left: 17.35vw;
+  bottom: 8.37vw;
+}
+
+.eco-points-panel-button-text {
+  width: 29.49vw;
+  height: 6.15vw;
+  position: absolute;
+  left: 25.38vw;
+  bottom: 12.9vw;
+}
+
+@font-face {
+  font-family: calibri;
+  src: url("../../../public/font/calibri.ttf");
+}
+
+.eco-points-score {
+  margin-top: 10vw;
+  font-size: 15vw; 
+  font-family: calibri;
+  font-style: italic;
+  color: rgba(7,73,139,255);
+  font-weight: 1000;
+  text-shadow: 3px -3px 2px white, 3px 3px 2px white, -3px 3px 2px white, -3px -3px 1px white;
+}

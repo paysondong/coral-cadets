@@ -1,0 +1,85 @@
+diff --git a/node_modules/webpack-dev-server/client/socket.js b/node_modules/webpack-dev-server/client/socket.js
+index 56f1b1c..c8291bd 100644
+--- a/node_modules/webpack-dev-server/client/socket.js
++++ b/node_modules/webpack-dev-server/client/socket.js
+@@ -24,43 +24,43 @@ export var client = null;
+  * @param {number} [reconnect]
+  */
+ var socket = function initSocket(url, handlers, reconnect) {
+-  client = new Client(url);
+-  client.onOpen(function () {
+-    retries = 0;
+-    if (typeof reconnect !== "undefined") {
+-      maxRetries = reconnect;
+-    }
+-  });
+-  client.onClose(function () {
+-    if (retries === 0) {
+-      handlers.close();
+-    }
++  // client = new Client(url);
++  // client.onOpen(function () {
++  //   retries = 0;
++  //   if (typeof reconnect !== "undefined") {
++  //     maxRetries = reconnect;
++  //   }
++  // });
++  // client.onClose(function () {
++  //   if (retries === 0) {
++  //     handlers.close();
++  //   }
+ 
+-    // Try to reconnect.
+-    client = null;
++  //   // Try to reconnect.
++  //   client = null;
+ 
+-    // After 10 retries stop trying, to prevent logspam.
+-    if (retries < maxRetries) {
+-      // Exponentially increase timeout to reconnect.
+-      // Respectfully copied from the package `got`.
+-      // eslint-disable-next-line no-restricted-properties
+-      var retryInMs = 1000 * Math.pow(2, retries) + Math.random() * 100;
+-      retries += 1;
+-      log.info("Trying to reconnect...");
+-      setTimeout(function () {
+-        socket(url, handlers, reconnect);
+-      }, retryInMs);
+-    }
+-  });
+-  client.onMessage(
+-  /**
+-   * @param {any} data
+-   */
+-  function (data) {
+-    var message = JSON.parse(data);
+-    if (handlers[message.type]) {
+-      handlers[message.type](message.data, message.params);
+-    }
+-  });
++  //   // After 10 retries stop trying, to prevent logspam.
++  //   if (retries < maxRetries) {
++  //     // Exponentially increase timeout to reconnect.
++  //     // Respectfully copied from the package `got`.
++  //     // eslint-disable-next-line no-restricted-properties
++  //     var retryInMs = 1000 * Math.pow(2, retries) + Math.random() * 100;
++  //     retries += 1;
++  //     log.info("Trying to reconnect...");
++  //     setTimeout(function () {
++  //       socket(url, handlers, reconnect);
++  //     }, retryInMs);
++  //   }
++  // });
++  // client.onMessage(
++  // /**
++  //  * @param {any} data
++  //  */
++  // function (data) {
++  //   var message = JSON.parse(data);
++  //   if (handlers[message.type]) {
++  //     handlers[message.type](message.data, message.params);
++  //   }
++  // });
+ };
+ export default socket;
+\ No newline at end of file

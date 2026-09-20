@@ -1,0 +1,75 @@
+.our-sponsor-panel {
+  width: 87.35vw;
+  height: 103vw;
+  margin-left: 7.26vw;
+  margin-top: 40vw;
+  position: fixed;
+  display: flex;
+  flex-direction: column;
+  top: 0;
+}
+
+.our-sponsor-panel-background {
+  width: 100%;
+  position: absolute;
+  height: 100%;
+  left: 0;
+}
+
+.our-sponsor-panel-close {
+  width: 8.12vw;
+  height: 8.3vw;
+  position: relative;
+  align-self: flex-end;
+  margin-top: 5.2vw;
+  margin-right: 6.7vw;
+}
+
+.our-sponsor-panel-title {
+  width: 63vw;
+  height: 12.73vw;
+  position: relative;
+  align-self: center;
+  margin-top: 2.4vw;
+}
+
+.our-sponsor-panel-text-1 {
+  width: 61.88vw;
+  height: 12.73vw;
+  position: relative;
+  align-self: center;
+  margin-top: 2.4vw;
+}
+
+.our-sponsor-panel-text-2 {
+  width: 67.265vw;
+  height: 12.3vw;
+  position: relative;
+  align-self: center;
+  margin-top: 2.4vw;
+}
+
+.our-sponsor-panel-text-website {
+  width: 34.61vw;
+  height: 5.21vw;
+  position: absolute;
+  left: 10vw;
+  top: 36.3vw;
+  margin-top: 2.4vw;
+}
+
+.our-sponsor-panel-button {
+  width: 51.54vw;
+  height: 14.79vw;
+  position: relative;
+  align-self: center;
+  margin-top: 21vw;
+}
+
+.our-sponsor-panel-button-text {
+  width: 41.965vw;
+  height: 7.6vw;
+  position: absolute;
+  align-self: center;
+  top: 83.5vw;
+}

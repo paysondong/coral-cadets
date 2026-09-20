@@ -1,0 +1,69 @@
+.app {
+  text-align: center;
+  height: 100%;
+  background-color: #282c34;
+  overflow: hidden;
+}
+
+.scene {
+  width: 100%;
+  height: 100vh;
+  height: calc(var(--vh, 1vh) * 100);
+}
+
+.about-us {
+  position: fixed;
+  left: 10.68vw;
+  bottom: 69.74vw;
+  width: 21.37vw;
+  height: 16.07vw;
+}
+
+.play {
+  position: fixed;
+  left: calc((100vw - 27.1vw) / 2);
+  bottom: calc((100vh - 27.1vw) / 2);
+  width: 27.1vw;
+  height: 27.1vw;
+}
+
+.earn-eco-points {
+  position: fixed;
+  left: calc((100vw - 27.1vw) / 2);
+  bottom: calc((100vh - 27.1vw) / 2 - 5.13vw);
+  width: 27vw;
+  height: 5.13;
+}
+
+body > iframe {
+  display: none;
+}
+
+.loading-body {
+  position: fixed;
+  left: 0;
+  bottom:0;
+  width: 100%;
+  height: 100vh;
+  height: calc(var(--vh, 1vh) * 100);
+}
+
+.loading {
+  position: fixed;
+  left: calc((100vw - 30vw) / 2);
+  bottom: calc((100vh - 25vw) / 2);
+  width: 30vw;
+  height: 30vw;
+}
+
+.loading-text {
+  position: fixed;
+  left: calc((100vw - 55vw) / 2);
+  bottom: calc((100vh) / 2);
+  font-size: 15vw; 
+  font-family: calibri;
+  font-style: italic;
+  color: rgba(7,73,139,255);
+  font-weight: 1000;
+  text-shadow: 3px -3px 2px white, 3px 3px 2px white, -3px 3px 2px white, -3px -3px 1px white;
+}

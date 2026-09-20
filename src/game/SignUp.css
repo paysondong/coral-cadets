@@ -1,0 +1,105 @@
+.sign-up {
+  text-align: center;
+  min-height: 100vh;
+  position: relative;
+  background-image: url("../../public/images/sign-up/background.png");
+  background-repeat: no-repeat;
+  background-size: cover;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.sign-up-back {
+  width: 3.077vw;
+  height: 4.87vw;
+  margin-left: 6.24vw;
+}
+
+.sign-up-title {
+  font-size: 7.2vw;
+  color: white;
+  font-family: "Calibri";
+}
+
+.sign-up-form-title {
+  font-size: 9.6vw;
+  color: white;
+  margin-top: 5vw;
+  font-family: "Calibri";
+}
+
+.sign-up-form-input {
+  width: 86vw;
+  height: 15vw;
+  align-self: center;
+  background: url("../../public/images/sign-up/input-background.png");
+  background-repeat: no-repeat;
+  background-size: contain;
+  border-width: 0;
+  outline: none;
+  margin-top: 3.25vw;
+  color: #02a5ab;
+  font-size: 5.13vw;
+  font-family: "Calibri";
+  text-indent: 6.83vw;
+}
+
+.sign-up-form-button {
+  width: 52.48vw;
+  height: 14.2vw;
+  border-radius: 7.1vw;
+  background: #e55d73;
+  align-self: center;
+  margin-top: 9vw;
+  text-align: center;
+  line-height: 14.2vw;
+  font-size: 8vw;
+  font-family: "Calibri";
+  color: white;
+}
+
+.sign-up-have-account {
+  font-size: 5.27vw;
+  color: white;
+  font-family: "Calibri";
+}
+
+.sign-up-sign-in-red {
+  font-size: 5.27vw;
+  color: #e55d73;
+  font-family: "Calibri";
+  margin-left: 1.9vw;
+}
+
+.sign-up-sign-in-red a {
+  color: #e55d73;
+  text-decoration-line: none;
+}
+
+.sign-up-divider {
+  width: 92.3vw;
+  height: 0.43vw;
+  position: absolute;
+  left: 3.8vw;
+  top: 2.63vw;
+}
+
+.sign-up-sign-in-blue {
+  font-size: 5.27vw;
+  color: #30faf7;
+  font-family: "Calibri";
+}
+
+.g-plus {
+  position: relative;
+  width: 15.4vw;
+  height: 15.4vw;
+  left: 42.3vw;
+  top: 1vw;
+  bottom: 9.06vw;
+}
+
+.logo {
+  margin-top: 2vw;
+}
