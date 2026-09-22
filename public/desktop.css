@@ -1,0 +1,5 @@
+.frame { 
+  height: 100vh;
+  width: calc((100vh / 2));
+  margin: 0 0 0 calc((100vw - 100vh / 2) / 2)
+}

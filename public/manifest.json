@@ -1,0 +1,16 @@
+{
+  "short_name": "CoralCadet",
+  "name": "CoralCadet — Pattern Reef",
+  "icons": [
+    {
+      "src": "images/logo.png",
+      "type": "image/png",
+      "sizes": "340x340"
+    }
+  ],
+  "start_url": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "theme_color": "#02131f",
+  "background_color": "#010a10"
+}
