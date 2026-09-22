@@ -1,10 +1,26 @@
 import { Scene } from "phaser";
 import { constant } from "./Constant";
-import { draw, fill, getRandomFiveElements } from "./LevelUtils";
+import { draw, fill } from "./LevelUtils";
+
+type GameSceneBridge = Scene & {
+  setupGoalHud?: (types: number[], target: number) => void;
+  updateGoalHud?: (counts: number[], target: number) => void;
+};
+
+const LEVEL_PALETTES: number[][] = [
+  [1, 2, 3, 5, 8],
+  [2, 3, 4, 5, 6],
+  [1, 4, 5, 7, 14],
+  [1, 3, 8, 9, 12],
+  [2, 5, 6, 10, 13],
+  [1, 7, 8, 11, 12],
+  [3, 4, 5, 9, 13],
+  [1, 6, 7, 10, 11],
+  [3, 5, 8, 12, 13],
+];
 
 export class Level {
   private scene: Scene;
-
   private textureKey: string;
   private gameAreaX: number = 0;
   private gameAreaY: number = 624;
@@ -17,29 +33,31 @@ export class Level {
   private goals: number[] = [];
   private goalsCount: number[];
   private levelCount: number;
-  private goalsText: Phaser.GameObjects.Text[] = [];
-
   private moveCallback: () => void;
-  public randomTypeSelection = getRandomFiveElements([
-  1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14,
-]);
+
+  public randomTypeSelection: number[];
 
   public updateGoals(delta1: number, delta2: number) {
+    const target = 4 * this.levelCount;
     this.goalsCount[0] += delta1;
     this.goalsCount[1] += delta2;
+    this.goalsCount[0] = Math.min(target, this.goalsCount[0]);
+    this.goalsCount[1] = Math.min(target, this.goalsCount[1]);
 
-    this.goalsCount[0] = Math.min(4 * this.levelCount, this.goalsCount[0]);
-    this.goalsCount[1] = Math.min(4 * this.levelCount, this.goalsCount[1]);
-    this.goalsText[0].setText(`${this.goalsCount[0]}/${4 * this.levelCount}`);
-    this.goalsText[1].setText(`${this.goalsCount[1]}/${4 * this.levelCount}`);
+    (this.scene as GameSceneBridge).updateGoalHud?.(this.goalsCount, target);
   }
 
   public isClear() {
-    return this.goalsCount[0] === 4 * this.levelCount && this.goalsCount[1] === 4 * this.levelCount;  
+    const target = 4 * this.levelCount;
+    return this.goalsCount[0] === target && this.goalsCount[1] === target;
   }
 
   public getGoals() {
     return this.goals;
+  }
+
+  public getGoalCounts() {
+    return [...this.goalsCount];
   }
 
   protected setGameAreaX(x: number) {
@@ -58,35 +76,40 @@ export class Level {
     this.gameAreaCellY = y;
   }
 
-  constructor(scene: Scene, moveCallback: () => void, textureKey: string, matrix: number[][], levelCount: number) {
+  constructor(
+    scene: Scene,
+    moveCallback: () => void,
+    textureKey: string,
+    matrix: number[][],
+    levelCount: number
+  ) {
     this.scene = scene;
     this.moveCallback = moveCallback;
     this.textureKey = textureKey;
     this.levelCount = levelCount;
     this.matrix = matrix;
-    this.goalsCount = [
-      0,
-      0,
-    ];
+    this.goalsCount = [0, 0];
+    this.randomTypeSelection = [...LEVEL_PALETTES[(levelCount - 1) % LEVEL_PALETTES.length]];
   }
 
-  shuffle = (array: number[]) => { 
-    for (let i = array.length - 1; i > 0; i--) { 
-      const j = Math.floor(Math.random() * (i + 1)); 
-      [array[i], array[j]] = [array[j], array[i]]; 
-    } 
-    return array; 
-  }; 
+  shuffle = (array: number[]) => {
+    for (let i = array.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [array[i], array[j]] = [array[j], array[i]];
+    }
+    return array;
+  };
 
   public gameArea() {
-    const gameAreaFrame = this.scene.add.image(
-      0,
-      0,
-      this.textureKey,
-    );
+    const gameAreaFrame = this.scene.add.image(0, 0, this.textureKey);
     gameAreaFrame.setScale(constant.SCALE);
-    gameAreaFrame.setX(this.gameAreaX * constant.SCALE + gameAreaFrame.displayWidth / 2);
-    gameAreaFrame.setY(this.gameAreaY * constant.SCALE + gameAreaFrame.displayHeight / 2);
+    gameAreaFrame.setX(
+      this.gameAreaX * constant.SCALE + gameAreaFrame.displayWidth / 2
+    );
+    gameAreaFrame.setY(
+      this.gameAreaY * constant.SCALE + gameAreaFrame.displayHeight / 2
+    );
+    gameAreaFrame.setAlpha(0.94);
 
     const gameAreaCell = this.scene.add.image(
       0,
@@ -94,15 +117,20 @@ export class Level {
       constant.TEXTURE_KEY_GAME_AREA_CELL
     );
     gameAreaCell.setScale((constant.SCALE * 122) / 104);
-    gameAreaCell.setX(this.gameAreaCellX * constant.SCALE + gameAreaCell.displayWidth / 2);
-    gameAreaCell.setY(this.gameAreaCellY * constant.SCALE + gameAreaCell.displayHeight / 2);
+    gameAreaCell.setX(
+      this.gameAreaCellX * constant.SCALE + gameAreaCell.displayWidth / 2
+    );
+    gameAreaCell.setY(
+      this.gameAreaCellY * constant.SCALE + gameAreaCell.displayHeight / 2
+    );
+    gameAreaCell.setAlpha(0.01);
 
     this.cellWidth = gameAreaCell.displayWidth;
     this.dividerWidth = 4 * constant.SCALE;
-    let startX = gameAreaCell.x - (this.cellWidth + this.dividerWidth);
-    let startY = gameAreaCell.y;
+    const startX = gameAreaCell.x - (this.cellWidth + this.dividerWidth);
+    const startY = gameAreaCell.y;
 
-    // 8 * 7 Matrix
+    this.positions = [];
     for (let j = 0; j < this.matrix.length; j++) {
       for (let i = 0; i < this.matrix[j].length; i++) {
         this.positions.push({
@@ -111,40 +139,35 @@ export class Level {
         });
       }
     }
-    console.log(this.matrix);
-    const matrixCell = this.matrix.map((e) => e.map((e) => ({ type: e })));
-    const matrixSprite = this.matrix.map((e) => e.map((e) => ({} as any)));
 
-    console.log(matrixCell);
+    const matrixCell = this.matrix.map((row) => row.map((type) => ({ type })));
+    const matrixSprite = this.matrix.map((row) =>
+      row.map(() => ({} as Phaser.GameObjects.Sprite))
+    );
 
     fill(matrixCell, this.randomTypeSelection).then(() => {
-      const distinctTypes = this.shuffle(Array.from(
-        new Set(matrixCell.flatMap(cells => cells.map(cell => cell.type)))
-      ).filter(type => type > 0));
+      const distinctTypes = this.shuffle(
+        Array.from(
+          new Set(matrixCell.flatMap((cells) => cells.map((cell) => cell.type)))
+        ).filter((type) => type > 0)
+      );
 
       if (this.goals.length === 0) {
         this.goals.push(distinctTypes[0]);
         this.goals.push(distinctTypes[1]);
-        const goal1 = this.scene.add.image(205, 37, `item-${this.goals[0]}`);
-        const goal2 = this.scene.add.image(255, 37, `item-${this.goals[1]}`);
-        const goal1Text = this.scene.add.text(190, 55, `0/${this.levelCount * 4}`);
-        goal1Text.setColor("black");
-        const goal2Text = this.scene.add.text(240, 55, `0/${this.levelCount * 4}`);
-        goal2Text.setColor("black");
-        goal1.setScale(this.cellWidth / goal1.width * 0.7);
-        goal2.setScale(this.cellWidth / goal2.width * 0.7);
-
-        this.goalsText.push(goal1Text);
-        this.goalsText.push(goal2Text);
+        (this.scene as GameSceneBridge).setupGoalHud?.(
+          this.goals,
+          4 * this.levelCount
+        );
       }
-      console.log(this.goals);
+
       draw(
         matrixCell,
         matrixSprite,
         {
           scene: this.scene,
-          startX: startX,
-          startY: startY,
+          startX,
+          startY,
           cellWidth: this.cellWidth,
           dividerWidth: this.dividerWidth,
         },

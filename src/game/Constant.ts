@@ -1,9 +1,11 @@
-const isMobile = /Android|webOS|iPhone|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+import { DESIGN_WIDTH, getGameViewport } from "./Layout";
+
+const viewport = getGameViewport();
 
 export const constant = {
-  SCALE: isMobile ? window.screen.width / 1170 : window.innerWidth / 1170,
-  MAX_MOVE: 24,
-  MAX_POINT_PROGRESS: 1500,
+  SCALE: viewport.width / DESIGN_WIDTH,
+  MAX_POINT_PROGRESS: 2200,
+  MOVE_LIMITS: [22, 24, 25, 27, 29, 31, 32, 34, 36],
 
   TEXTURE_KEY_BACKGROUND: "background",
   TEXTURE_KEY_BACK_ARROW: "back-arrow",

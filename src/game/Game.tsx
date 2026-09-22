@@ -1,8 +1,7 @@
-import { createRef, useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import * as Phaser from "phaser";
 
 import "./Game.css";
-import InformationBoard from "./information-board/InformationBoard";
 import OurSponsorPanel from "./our-sponsor/OurSponsorPanel";
 import Menu from "./menu/Menu";
 import OceanTriviaPanel from "./ocean-trivia/OceanTriviaPanel";
@@ -18,33 +17,34 @@ import { SceneLevel6 } from "./SceneLevel6";
 import { SceneLevel7 } from "./SceneLevel7";
 import { SceneLevel8 } from "./SceneLevel8";
 import { SceneLevel9 } from "./SceneLevel9";
-
-const isMobile = /Android|webOS|iPhone|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-
-var game: Phaser.Game;
+import { getGameViewport } from "./Layout";
 
 function Game() {
-  const canvasRef = createRef<HTMLCanvasElement>();
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const gameRef = useRef<Phaser.Game | null>(null);
+  const buttonSoundRef = useRef<HTMLAudioElement | null>(null);
 
-  const [aboutUsButtonHidden, setAboutUsButtonHidden] = useState(false);
-  const [playButtonHidden, setPlayButtonHidden] = useState(false);
-
-  const [informationBoardHidden, setInformationBoardHidden] = useState(true);
+  const [started, setStarted] = useState(false);
+  const [startLevel] = useState(() => {
+    const completed = Number(localStorage.getItem("unlock_count") || 0);
+    return completed >= 9 ? 1 : Math.min(9, Math.max(1, completed + 1));
+  });
   const [aboutUsPanelHidden, setAboutUsPanelHidden] = useState(true);
   const [ecoPointsPanelHidden, setEcoPointsPanelHidden] = useState(true);
   const [oceanTriviaPanelHidden, setOceanTriviaPanelHidden] = useState(true);
   const [ourSponsorPanelHidden, setOurSponsorPanelHidden] = useState(true);
   const [loading, setLoading] = useState(true);
-  const [count, setCount] = useState(0);
-  const [loadingText, setLoadingText] = useState("Loading");
-
-  const buttonSound = new Audio("audio/button.mp3");
 
   useEffect(() => {
+    buttonSoundRef.current = new Audio("audio/button.mp3");
+    buttonSoundRef.current.volume = 0.45;
+
+    if (!canvasRef.current || gameRef.current) return;
+    const viewport = getGameViewport();
     const config: Phaser.Types.Core.GameConfig = {
       type: Phaser.WEBGL,
-      width: isMobile ? window.screen.width : window.innerHeight / 2,
-      height: isMobile ? window.screen.height : window.innerHeight,
+      width: viewport.width,
+      height: viewport.height,
       scene: [
         SceneLevel1,
         SceneLevel2,
@@ -56,155 +56,154 @@ function Game() {
         SceneLevel8,
         SceneLevel9,
       ],
-      canvas: canvasRef.current!!,
+      canvas: canvasRef.current,
+      backgroundColor: "#02131f",
+      antialias: true,
+      render: {
+        powerPreference: "high-performance",
+      },
     };
 
-    game = new Phaser.Game(config);
-    console.log(game);
-  }, []);
+    gameRef.current = new Phaser.Game(config);
 
-  useEffect(() => {
-    if (!loading) {
-      return;
-    }
-
-    const timer = setInterval(() => {
-      if ((game.scene.getScene("SceneLevel1") as SceneLevel1).loaded) {
-        loaded();
+    const timer = window.setInterval(() => {
+      const scene = gameRef.current?.scene.getScene("SceneLevel1") as SceneLevel1 | undefined;
+      if (scene?.loaded) {
+        setLoading(false);
+        window.clearInterval(timer);
       }
-      setCount(count + 1);
-    }, 500);
+    }, 180);
 
     return () => {
-      clearInterval(timer);
-    };    
-  }, [count, loading])
+      window.clearInterval(timer);
+      gameRef.current?.destroy(true);
+      gameRef.current = null;
+    };
+  }, []);
 
-  useEffect(() => {
-    setLoadingText(`Loading${".".repeat(count % 4)}`);
-  }, [count]);
+  const clickSound = () => {
+    const sound = buttonSoundRef.current;
+    if (!sound) return;
+    sound.currentTime = 0;
+    void sound.play().catch(() => undefined);
+  };
 
-  const loaded = () => {
-    setLoading(false);
-  }
-
-  const body = (
-    <>
-      <Menu
-        onEcoPointsClick={() => {
-          buttonSound.play();
-          setEcoPointsPanelHidden(false);
-        }}
-        onOceanTriviaClick={() => {
-          buttonSound.play();
-          setOceanTriviaPanelHidden(false);
-        }}
-        onOurSponsorClick={() => {
-          buttonSound.play();
-          setOurSponsorPanelHidden(false);
-        }}
-      />
-
-      {aboutUsButtonHidden ? null : (
-        <img
-          src="images/about-us.png"
-          alt=""
-          className="about-us"
-          onClick={() => {
-            buttonSound.play();
-            setAboutUsPanelHidden(false);
-          }}
-        />
-      )}
-
-      {playButtonHidden ? null : (
-        <>
-          <img
-            src="images/play.png"
-            alt=""
-            className="play"
-            onClick={() => {
-              if ((game.scene.getScene("SceneLevel1") as SceneLevel1).loaded) {
-                buttonSound.play();
-                (game.scene.getScene("SceneLevel1") as SceneLevel1).play();
-                setAboutUsButtonHidden(true);
-                setPlayButtonHidden(true);
-              }
-            }}
-          />
-          <img
-            src="images/earn-eco-points.webp"
-            alt=""
-            className="earn-eco-points"
-          />
-        </>
-      )}
-
-      {informationBoardHidden ? null : (
-        <InformationBoard
-          onCloseClick={() => {
-            buttonSound.play();
-            setInformationBoardHidden(true);
-          }}
-        />
-      )}
-      {aboutUsPanelHidden ? null : (
-        <AboutUsPanel
-          onCloseClick={() => {
-            buttonSound.play();
-            setAboutUsPanelHidden(true);
-          }}
-        />
-      )}
-      {ecoPointsPanelHidden ? null : (
-        <EcoPointsPanel
-          onCloseClick={() => {
-            buttonSound.play();
-            setEcoPointsPanelHidden(true);
-          }}
-        />
-      )}
-      {oceanTriviaPanelHidden ? null : (
-        <OceanTriviaPanel
-          onCloseClick={() => {
-            buttonSound.play();
-            setOceanTriviaPanelHidden(true);
-          }}
-        />
-      )}
-      {ourSponsorPanelHidden ? null : (
-        <OurSponsorPanel
-          onCloseClick={() => {
-            buttonSound.play();
-            setOurSponsorPanelHidden(true);
-          }}
-        />
-      )}
-    </>
-  )
-
-  const loadingBody = (
-    <div>
-          <img
-            src="images/loading_background.png"
-            alt=""
-            className="loading-body"
-          />
-          <div
-            className="loading-text">
-              {loadingText}
-          </div>
-
-    </div>
-  )
+  const startGame = () => {
+    const scene = gameRef.current?.scene.getScene("SceneLevel1") as SceneLevel1 | undefined;
+    if (!scene?.loaded || !gameRef.current) return;
+    clickSound();
+    if (startLevel === 1) {
+      scene.play();
+    } else {
+      gameRef.current.scene.stop("SceneLevel1");
+      gameRef.current.scene.start(`SceneLevel${startLevel}`);
+    }
+    setStarted(true);
+  };
 
   return (
-    <div className="app">
-      <canvas className="scene" ref={canvasRef} />
-      {
-        loading ? loadingBody : body
-      }
-    </div>
+    <main className="coral-stage">
+      <div className="coral-stage__ambient" aria-hidden="true">
+        <span />
+        <span />
+        <span />
+      </div>
+
+      <section className="game-shell" aria-label="Coral Cadet game">
+        <canvas className="scene" ref={canvasRef} />
+        <div className="game-shell__glass" aria-hidden="true" />
+
+        {loading ? (
+          <div className="reef-loading">
+            <div className="reef-loading__spiral" aria-hidden="true">
+              {Array.from({ length: 21 }).map((_, index) => (
+                <i key={index} style={{ "--i": index } as React.CSSProperties} />
+              ))}
+            </div>
+            <div className="reef-loading__brand">CORALCADET</div>
+            <div className="reef-loading__copy">Growing the reef…</div>
+          </div>
+        ) : !started ? (
+          <>
+            <div className="reef-landing">
+              <div className="reef-landing__index">REEF {String(startLevel).padStart(2, "0")} / 09 · PATTERN REEF</div>
+              <div className="reef-landing__mark" aria-hidden="true">
+                <span className="reef-landing__orbit reef-landing__orbit--one" />
+                <span className="reef-landing__orbit reef-landing__orbit--two" />
+                <span className="reef-landing__core" />
+              </div>
+              <h1>CORALCADET</h1>
+              <p className="reef-landing__subtitle">Pattern Reef</p>
+              <p className="reef-landing__statement">
+                Match colour. Build chains. Let the reef bloom.
+              </p>
+              <button className="reef-play" onClick={startGame}>
+                <span>{startLevel === 1 ? "DIVE IN" : `CONTINUE · REEF ${String(startLevel).padStart(2, "0")}`}</span>
+                <b>→</b>
+              </button>
+              <div className="reef-landing__rules">
+                <span>3 · MATCH</span>
+                <span>4 · PULSE</span>
+                <span>5 · φ BLOOM</span>
+                <span>3→5→8 · FLOW</span>
+              </div>
+            </div>
+
+            <Menu
+              onEcoPointsClick={() => {
+                clickSound();
+                setEcoPointsPanelHidden(false);
+              }}
+              onOceanTriviaClick={() => {
+                clickSound();
+                setOceanTriviaPanelHidden(false);
+              }}
+              onOurSponsorClick={() => {
+                clickSound();
+                setOurSponsorPanelHidden(false);
+              }}
+              onAboutClick={() => {
+                clickSound();
+                setAboutUsPanelHidden(false);
+              }}
+            />
+          </>
+        ) : null}
+
+        {aboutUsPanelHidden ? null : (
+          <AboutUsPanel
+            onCloseClick={() => {
+              clickSound();
+              setAboutUsPanelHidden(true);
+            }}
+          />
+        )}
+        {ecoPointsPanelHidden ? null : (
+          <EcoPointsPanel
+            onCloseClick={() => {
+              clickSound();
+              setEcoPointsPanelHidden(true);
+            }}
+          />
+        )}
+        {oceanTriviaPanelHidden ? null : (
+          <OceanTriviaPanel
+            onCloseClick={() => {
+              clickSound();
+              setOceanTriviaPanelHidden(true);
+            }}
+          />
+        )}
+        {ourSponsorPanelHidden ? null : (
+          <OurSponsorPanel
+            onCloseClick={() => {
+              clickSound();
+              setOurSponsorPanelHidden(true);
+            }}
+          />
+        )}
+      </section>
+    </main>
   );
 }
 

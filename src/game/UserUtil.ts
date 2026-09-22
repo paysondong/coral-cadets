@@ -1,5 +1,3 @@
-import { log } from "console";
-
 // Default login retention to 1 day
 const TOKEN_RENTENTION = 60 * 60 * 24 * 1000;
 

@@ -108,7 +108,7 @@ function SignUp() {
           }}
         >
           <div className="sign-up-have-account">Already have an account?</div>
-          <div className="sign-up-sign-in-red"><a href="/">Sign in</a></div>
+          <div className="sign-up-sign-in-red"><a href="/signin">Sign in</a></div>
         </div>
 
         <div style={{ position: "relative", marginTop: "9.06vw" }}>

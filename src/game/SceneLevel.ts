@@ -9,22 +9,19 @@ import { Level6 } from "./Level6";
 import { Level7 } from "./Level7";
 import { Level8 } from "./Level8";
 import { Level9 } from "./Level9";
+import { CONTEXT, MatchSummary } from "./LevelUtils";
+import { getGameViewport } from "./Layout";
 
-const isMobile = /Android|webOS|iPhone|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-
-const topics = [
-  ["Every year, about 8 million", "tons of plastic waste enters", "our oceans causing great ", "harm to marine life."],
-  ["Coral reefs are important", "habitats for marine life, ", "but many are now threatened", "by ocean acidification and ", "global warming"],
-  ["Overfishing can disrupt the", "balance of marine ecosystems", "severely affecting the quantity", "and diversity of marine species"],
-  ["The ocean absorbs carbon dioxide", "from the atmosphere, leading to ", "ocean acidification, which", "threatens the survival of many", "marine creatures, particularly", "corals and shellfish"],
-  ["Establishing marine protected", "areas is an important means of ", "protecting marine life and ", "ecosystems, providing a habitat ", "free from human interference"],
-  ["Marine litter not only affects", "the ocean landscape but can", "also be mistakenly ingested", "by marine life, causing injury", "and even death"],
-  ["Greenhouse gases produced by", "the burning of fossil fuels", "are the main cause of ", "rising ocean temperatures and ", "acidification"],
-  ["Ocean noise pollution can", "interfere with the navigation,", "food-seeking, breeding, and ", "other activities of marine life"],
-  ["Many marine creatures, such as", "dolphins, turtles, and whales, ", "are endangered due to human", "activities and need our protection"],
-  ["We can protect marine life by", "choosing sustainable ocean", "activities, such as observing rather", "than touching marine life, not ", "leaving garbage on the beach,", "and choosing sustainable marine", "products"],
-  ["Corals are an important part of", "marine ecosystems, providing", "habitats, and helping protect", "coastlines from erosion"],
-  ["Marine debris, especially plastic", "waste, poses a serious threat", "to marine life, as they can ", "mistakenly ingest these materials"],
+const reefVerses = [
+  "A new rhythm appears in the reef.",
+  "Small patterns become living landscapes.",
+  "The current remembers every beautiful chain.",
+  "Order, chance, and colour bloom together.",
+  "The reef grows where patterns meet.",
+  "A quiet symmetry moves through the water.",
+  "Life returns one brilliant move at a time.",
+  "Every chain leaves a trace of light.",
+  "The reef is never finished — only becoming.",
 ];
 
 export class SceneLevel extends Phaser.Scene {
@@ -35,11 +32,13 @@ export class SceneLevel extends Phaser.Scene {
   private score: number = 0;
   private pointText?: Phaser.GameObjects.Text;
   public movesText?: Phaser.GameObjects.Text;
-  private pointProgress?: Phaser.GameObjects.Image;
-  private pointProgressFrame?: Phaser.GameObjects.Image;
-  private levelTexture: string;
-  private stars: Phaser.GameObjects.Image[] = [];
-  private starPositions: number[] = [100, 500, 1000];
+  private levelText?: Phaser.GameObjects.Text;
+  private bloomLabel?: Phaser.GameObjects.Text;
+  private bloomBarFill?: Phaser.GameObjects.Rectangle;
+  private bloomEnergy = 0;
+  private reefBloomCount = 0;
+  private goalTexts: Phaser.GameObjects.Text[] = [];
+  private goalIcons: Phaser.GameObjects.Image[] = [];
   private musicImage?: Phaser.GameObjects.Image;
   private disableMusicImage?: Phaser.GameObjects.Image;
   private soundImage?: Phaser.GameObjects.Image;
@@ -50,33 +49,368 @@ export class SceneLevel extends Phaser.Scene {
   public dropSound?: Phaser.Sound.BaseSound;
   public swapSound?: Phaser.Sound.BaseSound;
   public elinimateSound?: Phaser.Sound.BaseSound;
-  public loaded: boolean = false;
-  public showWin: boolean = false;
+  public loaded = false;
+  public showWin = false;
+  private started = false;
+  private moveLimit: number;
 
   public addScore(score: number) {
     this.score += score;
-    this.pointText?.setText(`${this.score}`);
-    this.pointProgress?.setCrop(0, 0, (Math.min(this.score, constant.MAX_POINT_PROGRESS) / constant.MAX_POINT_PROGRESS) * this.pointProgress!.width, this.pointProgress.height);
-    // this.pointProgress?.setScale((constant.SCALE * (Math.min(this.score, constant.MAX_POINT_PROGRESS) / constant.MAX_POINT_PROGRESS)) / 773 * 905, (constant.SCALE * 905) / 773);
-    let i = 0;
-    while (i !== this.stars.length) {
-      if (this.starPositions[i] < this.score) {
-        this.stars[i].setAlpha(1);
-      } 
-      i += 1;
+    this.pointText?.setText(this.score.toLocaleString());
+    if (this.pointText) {
+      this.tweens.add({
+        targets: this.pointText,
+        scaleX: 1.08,
+        scaleY: 1.08,
+        duration: 80,
+        yoyo: true,
+      });
     }
   }
 
-  public playSound(sound: Phaser.Sound.BaseSound) {
-    if (this.disableSoundImage?.visible) {
-      return;
-    }
-
+  public playSound(sound?: Phaser.Sound.BaseSound) {
+    if (!sound || this.disableSoundImage?.visible) return;
     sound.play();
   }
 
+  public setupGoalHud(types: number[], target: number) {
+    this.goalIcons.forEach((icon) => icon.destroy());
+    this.goalTexts.forEach((text) => text.destroy());
+    this.goalIcons = [];
+    this.goalTexts = [];
+
+    const y = 382 * constant.SCALE;
+    const centers = [440, 730];
+
+    centers.forEach((cx, index) => {
+      const panel = this.add.graphics();
+      panel.fillStyle(0x031f30, 0.74);
+      panel.lineStyle(Math.max(1, 2 * constant.SCALE), 0x5df6ee, 0.26);
+      panel.fillRoundedRect(
+        (cx - 112) * constant.SCALE,
+        318 * constant.SCALE,
+        224 * constant.SCALE,
+        128 * constant.SCALE,
+        34 * constant.SCALE
+      );
+      panel.strokeRoundedRect(
+        (cx - 112) * constant.SCALE,
+        318 * constant.SCALE,
+        224 * constant.SCALE,
+        128 * constant.SCALE,
+        34 * constant.SCALE
+      );
+
+      const icon = this.add.image(
+        (cx - 52) * constant.SCALE,
+        y,
+        `item-${types[index]}`
+      );
+      icon.setScale((78 * constant.SCALE) / icon.width);
+      this.goalIcons.push(icon);
+
+      const text = this.add.text(
+        (cx + 8) * constant.SCALE,
+        (y / constant.SCALE - 23) * constant.SCALE,
+        `0 / ${target}`,
+        {
+          fontFamily: "Arial, sans-serif",
+          fontSize: `${34 * constant.SCALE}px`,
+          fontStyle: "bold",
+          color: "#E8FFFF",
+        }
+      );
+      this.goalTexts.push(text);
+    });
+  }
+
+  public updateGoalHud(counts: number[], target: number) {
+    counts.forEach((count, index) => {
+      const text = this.goalTexts[index];
+      if (!text) return;
+      text.setText(`${count} / ${target}`);
+      this.tweens.add({
+        targets: text,
+        scaleX: 1.08,
+        scaleY: 1.08,
+        duration: 90,
+        yoyo: true,
+      });
+      const icon = this.goalIcons[index];
+      if (icon) {
+        const baseScale = icon.scaleX;
+        this.tweens.add({
+          targets: icon,
+          scaleX: baseScale * 1.08,
+          scaleY: baseScale * 1.08,
+          duration: 90,
+          yoyo: true,
+        });
+      }
+    });
+  }
+
+  public onInvalidMove() {
+    this.cameras.main.shake(70, 0.0016);
+    this.showFloatingLabel("TRY ANOTHER CURRENT", 0x8be9ff, 0.75);
+  }
+
+  public onBoardShift() {
+    this.cameras.main.flash(180, 72, 211, 208, false);
+    this.showFloatingLabel("CURRENT SHIFT", 0x76fff1, 0.9);
+  }
+
+  public onMatchResolved(
+    summary: MatchSummary,
+    cascade: number,
+    score: number,
+    context: CONTEXT
+  ) {
+    const x = context.startX + summary.center.j * (context.cellWidth + context.dividerWidth);
+    const y = context.startY + summary.center.i * (context.cellWidth + context.dividerWidth);
+
+    this.matchRipple(x, y, summary.pattern);
+
+    if (summary.pattern === "pulse") {
+      this.showPatternLabel("PULSE", "+" + score, 0x72f7ff);
+    } else if (summary.pattern === "golden") {
+      this.showPatternLabel("φ BLOOM", "+" + score, 0xffd77a);
+    } else if (summary.pattern === "symmetry") {
+      this.showPatternLabel("SYMMETRY WAVE", "+" + score, 0xf2a3ff);
+    } else if (cascade > 1) {
+      this.showPatternLabel(`CHAIN ×${cascade}`, `+${score}`, 0x9fffc7);
+    }
+
+    let gain = summary.cleared * 4 + summary.specialCleared * 3 + cascade * 3;
+    if (summary.maxLineLength >= 5) gain += 15;
+    if (summary.hasCross) gain += 12;
+    this.addBloom(gain);
+  }
+
+  public onCascadeComplete(cascade: number) {
+    if (![3, 5, 8].includes(cascade)) return;
+    const bonus = cascade * 90;
+    this.addScore(bonus);
+    this.addBloom(10 + cascade * 2);
+    this.showPatternLabel(
+      `FIBONACCI FLOW · ${cascade}`,
+      `+${bonus}`,
+      0xffdc7a,
+      1.1
+    );
+  }
+
+  private addBloom(amount: number) {
+    this.bloomEnergy = Math.min(100, this.bloomEnergy + amount);
+    this.updateBloomBar();
+    if (this.bloomEnergy >= 100) {
+      this.bloomEnergy = 0;
+      this.updateBloomBar();
+      this.triggerReefBloom();
+    }
+  }
+
+  private updateBloomBar() {
+    if (!this.bloomBarFill) return;
+    const width = 760 * constant.SCALE;
+    this.bloomBarFill.setDisplaySize(width * (this.bloomEnergy / 100), 8 * constant.SCALE);
+    this.bloomBarFill.setAlpha(this.bloomEnergy > 0 ? 0.95 : 0.35);
+    this.bloomLabel?.setText(this.bloomEnergy >= 70 ? "BLOOM READY" : "BLOOM");
+  }
+
+  private triggerReefBloom() {
+    const bonus = 300;
+    this.addScore(bonus);
+    this.cameras.main.flash(260, 86, 255, 220, false);
+    this.spawnGoldenField();
+    this.growCoralSignature();
+    this.showPatternLabel("REEF BLOOM", `+${bonus}`, 0xffdc76, 1.25);
+  }
+
+  private matchRipple(x: number, y: number, pattern: MatchSummary["pattern"]) {
+    const colors: Record<MatchSummary["pattern"], number> = {
+      match: 0x6affef,
+      pulse: 0x6ad9ff,
+      golden: 0xffd36e,
+      symmetry: 0xe58cff,
+    };
+    const color = colors[pattern];
+
+    for (let ring = 0; ring < 2; ring++) {
+      const circle = this.add.circle(x, y, 16 * constant.SCALE, color, 0);
+      circle.setStrokeStyle(Math.max(1, 3 * constant.SCALE), color, 0.75);
+      this.tweens.add({
+        targets: circle,
+        scale: 3.2 + ring * 1.1,
+        alpha: 0,
+        duration: 360 + ring * 90,
+        ease: "Quad.easeOut",
+        onComplete: () => circle.destroy(),
+      });
+    }
+
+    const count = pattern === "match" ? 7 : 13;
+    const goldenAngle = Phaser.Math.DegToRad(137.507764);
+    for (let i = 0; i < count; i++) {
+      const radius = (20 + i * 6) * constant.SCALE;
+      const angle = goldenAngle * i;
+      const dot = this.add.circle(x, y, (3 + (i % 3)) * constant.SCALE, color, 0.85);
+      this.tweens.add({
+        targets: dot,
+        x: x + Math.cos(angle) * radius,
+        y: y + Math.sin(angle) * radius,
+        alpha: 0,
+        scale: 0.2,
+        duration: 360 + i * 12,
+        ease: "Cubic.easeOut",
+        onComplete: () => dot.destroy(),
+      });
+    }
+  }
+
+  private showPatternLabel(
+    title: string,
+    detail: string,
+    color: number,
+    scale = 1
+  ) {
+    const colorHex = `#${color.toString(16).padStart(6, "0")}`;
+    const titleText = this.add.text(
+      this.screenWidth / 2,
+      530 * constant.SCALE,
+      title,
+      {
+        fontFamily: "Arial, sans-serif",
+        fontSize: `${44 * constant.SCALE * scale}px`,
+        fontStyle: "bold",
+        color: colorHex,
+        stroke: "#02131d",
+        strokeThickness: Math.max(2, 7 * constant.SCALE),
+      }
+    );
+    titleText.setOrigin(0.5);
+
+    const detailText = this.add.text(
+      this.screenWidth / 2,
+      584 * constant.SCALE,
+      detail,
+      {
+        fontFamily: "Arial, sans-serif",
+        fontSize: `${28 * constant.SCALE}px`,
+        fontStyle: "bold",
+        color: "#E9FFFF",
+        stroke: "#02131d",
+        strokeThickness: Math.max(2, 6 * constant.SCALE),
+      }
+    );
+    detailText.setOrigin(0.5);
+
+    [titleText, detailText].forEach((text, index) => {
+      text.setAlpha(0);
+      text.y += 18 * constant.SCALE;
+      this.tweens.add({
+        targets: text,
+        alpha: 1,
+        y: text.y - 18 * constant.SCALE,
+        duration: 160,
+        yoyo: true,
+        hold: 430 + index * 30,
+        onComplete: () => text.destroy(),
+      });
+    });
+  }
+
+  private showFloatingLabel(text: string, color: number, alpha = 1) {
+    const label = this.add.text(this.screenWidth / 2, 540 * constant.SCALE, text, {
+      fontFamily: "Arial, sans-serif",
+      fontSize: `${28 * constant.SCALE}px`,
+      fontStyle: "bold",
+      color: `#${color.toString(16).padStart(6, "0")}`,
+      stroke: "#00131f",
+      strokeThickness: Math.max(2, 5 * constant.SCALE),
+    });
+    label.setOrigin(0.5);
+    label.setAlpha(alpha);
+    this.tweens.add({
+      targets: label,
+      y: label.y - 34 * constant.SCALE,
+      alpha: 0,
+      duration: 520,
+      onComplete: () => label.destroy(),
+    });
+  }
+
+  private growCoralSignature() {
+    this.reefBloomCount += 1;
+    const graphics = this.add.graphics();
+    graphics.setDepth(-8);
+    const colors = [0xff8e83, 0x7cfff0, 0xffd36f, 0xd08cff];
+    const color = colors[(this.reefBloomCount - 1) % colors.length];
+    const baseX = this.reefBloomCount % 2 === 0
+      ? this.screenWidth - 92 * constant.SCALE
+      : 92 * constant.SCALE;
+    const baseY = this.screenHeight - 52 * constant.SCALE;
+    const direction = this.reefBloomCount % 2 === 0 ? -1 : 1;
+
+    const drawBranch = (x: number, y: number, length: number, angle: number, depth: number) => {
+      const x2 = x + Math.cos(angle) * length;
+      const y2 = y + Math.sin(angle) * length;
+      graphics.lineStyle(Math.max(1, (depth + 1) * 1.45 * constant.SCALE), color, 0.5);
+      graphics.lineBetween(x, y, x2, y2);
+      graphics.fillStyle(color, 0.32);
+      graphics.fillCircle(x2, y2, Math.max(1.4, (depth + 1) * 1.7 * constant.SCALE));
+      if (depth <= 0) return;
+      const next = length * 0.61803398875;
+      drawBranch(x2, y2, next, angle - direction * 0.53, depth - 1);
+      drawBranch(x2, y2, next * 0.92, angle + direction * 0.69, depth - 1);
+    };
+
+    drawBranch(
+      baseX,
+      baseY,
+      118 * constant.SCALE,
+      -Math.PI / 2 + direction * 0.12,
+      3
+    );
+
+    graphics.setAlpha(0);
+    this.tweens.add({
+      targets: graphics,
+      alpha: 0.72,
+      duration: 620,
+      ease: "Sine.easeOut",
+    });
+  }
+
+  private spawnGoldenField() {
+    const centerX = this.screenWidth / 2;
+    const centerY = this.screenHeight * 0.46;
+    const goldenAngle = Phaser.Math.DegToRad(137.507764);
+
+    for (let i = 0; i < 34; i++) {
+      const radius = Math.sqrt(i + 1) * 34 * constant.SCALE;
+      const angle = goldenAngle * i;
+      const dot = this.add.circle(
+        centerX,
+        centerY,
+        (2.5 + (i % 4)) * constant.SCALE,
+        i % 3 === 0 ? 0xffd873 : 0x7dfff1,
+        0.74
+      );
+      this.tweens.add({
+        targets: dot,
+        x: centerX + Math.cos(angle) * radius,
+        y: centerY + Math.sin(angle) * radius,
+        alpha: 0,
+        duration: 720 + i * 10,
+        ease: "Cubic.easeOut",
+        onComplete: () => dot.destroy(),
+      });
+    }
+  }
+
   private getLevel = (level: number) => {
-    switch(level) {
+    switch (level) {
       case 1:
         return new Level1(this, this.callback);
       case 2:
@@ -95,53 +429,45 @@ export class SceneLevel extends Phaser.Scene {
         return new Level8(this, this.callback);
       case 9:
         return new Level9(this, this.callback);
-    }
-    return null;
-  }
-
-  private callback = () => {
-    if (this.showWin) {
-      return;
-    }
-    const moves = parseInt(this.movesText!!.text) - 1;
-    if (moves === 0 && this.level?.isClear()) {
-      let oldScoreValue = localStorage.getItem("ecoScore");
-      let oldScore = 0;
-      if (oldScoreValue) {
-        oldScore = parseInt(oldScoreValue);
-      }
-
-      let unlockCount = localStorage.getItem("unlock_count");
-      if (!unlockCount) {
-        unlockCount = "0";
-      }
-      const count = parseInt(unlockCount, 10);
-      localStorage.setItem("ecoScore", oldScore + this.score + "");
-      localStorage.setItem("unlock_count", `${count + 1}`);
-      if (this.levelCount === 9) {
-        this.level = this.getLevel(this.levelCount);
-        this.score = 0;
-        this.shouldPlay = true;
-        this.backgroundMusic?.stop();
-        this.scene.start(`SceneLevel${this.levelCount}`, {});
-      }
-      this.win();
-    } else if (moves === 0) {
-      this.failed();
-    } else {
-      this.movesText!!.setText(moves.toString());
+      default:
+        return null;
     }
   };
 
+  private callback = () => {
+    if (this.showWin) return;
+
+    const moves = Math.max(0, parseInt(this.movesText?.text || "0", 10) - 1);
+    this.movesText?.setText(moves.toString());
+
+    if (this.level?.isClear()) {
+      this.finishLevel();
+      return;
+    }
+
+    if (moves <= 0) this.failed();
+  };
+
+  private finishLevel() {
+    if (this.showWin) return;
+    let oldScore = parseInt(localStorage.getItem("ecoScore") || "0", 10);
+    let unlockCount = parseInt(localStorage.getItem("unlock_count") || "0", 10);
+    localStorage.setItem("ecoScore", `${oldScore + this.score}`);
+    localStorage.setItem("unlock_count", `${Math.max(unlockCount, this.levelCount)}`);
+    this.win();
+  }
+
   constructor(levelCount: number, levelTexture: string, shouldPlay: boolean = true) {
-    super();
+    super({ key: `SceneLevel${levelCount}` });
     this.levelCount = levelCount;
-    this.levelTexture = levelTexture;
-    this.screenWidth = isMobile ? window.screen.width : window.innerHeight / 2,
-    this.screenHeight = isMobile ? window.screen.height : window.innerHeight,
+    this.levelText = undefined;
+    const viewport = getGameViewport();
+    this.screenWidth = viewport.width;
+    this.screenHeight = viewport.height;
     this.shouldPlay = shouldPlay;
-    Phaser.Scene.call(this, { key: `SceneLevel${this.levelCount}` });
+    this.moveLimit = constant.MOVE_LIMITS[levelCount - 1] ?? 28;
     this.level = this.getLevel(levelCount);
+    void levelTexture;
   }
 
   preload() {
@@ -149,537 +475,432 @@ export class SceneLevel extends Phaser.Scene {
     this.load.image(constant.TEXTURE_KEY_BACK_ARROW, "images/back-arrow.png");
     this.load.image(constant.TEXTURE_KEY_MUSIC, "images/music.png");
     this.load.image(constant.TEXTURE_KEY_MICROPHONE, "images/microphone.png");
-    this.load.image(
-      constant.TEXTURE_KEY_DISABLE_AUDIO,
-      "images/disable-audio.png"
-    );
-    this.load.image(constant.TEXTURE_KEY_MOVES_FRAME, "images/moves-frame.png");
-    this.load.image(constant.TEXTURE_KEY_POINT_FRAME, "images/point-frame.png");
-    this.load.image(
-      constant.TEXTURE_KEY_POINT_PROGRESS_FRAME,
-      "images/point-progress-frame.png"
-    );
-    this.load.image(
-      constant.TEXTURE_KEY_POINT_PROGRESS,
-      "images/point-progress.png"
-    );
+    this.load.image(constant.TEXTURE_KEY_DISABLE_AUDIO, "images/disable-audio.png");
     this.load.image(constant.TEXTURE_KEY_STAR, "images/star.png");
-    this.load.image(this.levelTexture, `images/level-${this.levelCount}.png`);
-    this.load.image(
-      constant.TEXTURE_KEY_GAME_AREA_CELL,
-      "images/game-area-cell.png"
-    );
+    this.load.image(`level-${this.levelCount}`, `images/level-${this.levelCount}.png`);
+    this.load.image(constant.TEXTURE_KEY_GAME_AREA_CELL, "images/game-area-cell.png");
 
-    this.load.spritesheet(
-      constant.TEXTURE_KEY_NPC_STATIC,
-      "images/sprite-sheet/npc-static.png",
-      {
-        frameWidth: 89,
-        frameHeight: 89,
-      }
-    );
-    this.load.spritesheet(
-      constant.TEXTURE_KEY_HINT_BUBBLE,
-      "images/sprite-sheet/hint-bubble.png",
-      {
-        frameWidth: 96,
-        frameHeight: 60,
-      }
-    );
-    this.load.spritesheet(
-      constant.TEXTURE_KEY_PINK_FISH,
-      "images/sprite-sheet/pink-fish.png",
-      {
-        frameWidth: 159,
-        frameHeight: 137,
-      }
-    );
-    this.load.spritesheet(
-      constant.TEXTURE_KEY_FISH_4,
-      "images/sprite-sheet/fish-4.png",
-      {
-        frameWidth: 246,
-        frameHeight: 144,
-      }
-    );
-    this.load.spritesheet(
-      constant.TEXTURE_KEY_JELLYFISH,
-      "images/sprite-sheet/jellyfish.png",
-      {
-        frameWidth: 190,
-        frameHeight: 357,
-      }
-    );
-    this.load.spritesheet(
-      constant.TEXTURE_KEY_DISAPPEAR,
-      "images/sprite-sheet/disappear.png",
-      {
-        frameWidth: 119,
-        frameHeight: 103,
-      }
-    );
+    this.load.spritesheet(constant.TEXTURE_KEY_PINK_FISH, "images/sprite-sheet/pink-fish.png", {
+      frameWidth: 159,
+      frameHeight: 137,
+    });
+    this.load.spritesheet(constant.TEXTURE_KEY_FISH_4, "images/sprite-sheet/fish-4.png", {
+      frameWidth: 246,
+      frameHeight: 144,
+    });
+    this.load.spritesheet(constant.TEXTURE_KEY_JELLYFISH, "images/sprite-sheet/jellyfish.png", {
+      frameWidth: 190,
+      frameHeight: 357,
+    });
+    this.load.spritesheet(constant.TEXTURE_KEY_DISAPPEAR, "images/sprite-sheet/disappear.png", {
+      frameWidth: 119,
+      frameHeight: 103,
+    });
 
-    this.load.image(constant.TEXTURE_KEY_ITEM_1, "images/items/1.png");
-    this.load.image(constant.TEXTURE_KEY_ITEM_2, "images/items/2.png");
-    this.load.image(constant.TEXTURE_KEY_ITEM_3, "images/items/3.png");
-    this.load.image(constant.TEXTURE_KEY_ITEM_4, "images/items/4.png");
-    this.load.image(constant.TEXTURE_KEY_ITEM_5, "images/items/5.png");
-    this.load.image(constant.TEXTURE_KEY_ITEM_6, "images/items/6.png");
-    this.load.image(constant.TEXTURE_KEY_ITEM_7, "images/items/7.png");
-    this.load.image(constant.TEXTURE_KEY_ITEM_8, "images/items/8.png");
-    this.load.image(constant.TEXTURE_KEY_ITEM_9, "images/items/9.png");
-    this.load.image(constant.TEXTURE_KEY_ITEM_10, "images/items/10.png");
-    this.load.image(constant.TEXTURE_KEY_ITEM_11, "images/items/11.png");
-    this.load.image(constant.TEXTURE_KEY_ITEM_12, "images/items/12.png");
-    this.load.image(constant.TEXTURE_KEY_ITEM_13, "images/items/13.png");
-    this.load.image(constant.TEXTURE_KEY_ITEM_14, "images/items/14.png");
-    this.load.image(constant.TEXTURE_KEY_FAILED, "images/failed.png");
-    this.load.image(constant.TEXTURE_KEY_VICTORY, "images/victory.png");
-    this.load.image(constant.TEXTURE_KEY_RETRY, "images/retry.png");
-    this.load.image(constant.TEXTURE_KEY_NEXT, "images/next.png");
+    for (let i = 1; i <= 14; i++) {
+      this.load.image(`item-${i}`, `images/items/${i}.png`);
+    }
+
     this.load.audio(constant.BACKGROUND_MUSIC, "audio/background.mp3");
     this.load.audio(constant.DROP_SOUND, "audio/drop.mp3");
     this.load.audio(constant.SWAP_SOUND, "audio/swap.mp3");
-    this.load.audio(constant.ELIMINATE_SOUND, "audio/eliminate.mp3")
-    console.log("Loaded");
+    this.load.audio(constant.ELIMINATE_SOUND, "audio/eliminate.mp3");
   }
 
   create() {
     this.background();
-
+    this.ambientGeometry();
     this.fish();
-
     this.initSound();
 
-    if (this.shouldPlay) {
-      this.play();
-    }
-
+    if (this.shouldPlay) this.play();
     this.loaded = true;
+  }
+
+  public play() {
+    if (this.started) return;
+    this.started = true;
+    this.backArrow();
+    this.soundControls();
+    this.hud();
+    this.level?.gameArea();
+    this.backgroundMusic?.play();
   }
 
   win() {
     this.showWin = true;
-    const win = this.add.image(
-      this.screenWidth / 2,
-      this.screenHeight / 2 - 100,
-      constant.TEXTURE_KEY_VICTORY,
-    );
-    win.setScale(0.3);
-    const count = parseInt(localStorage.getItem("unlock_count")!, 10);
-    let idx = count;
-    if (count >= 12) {
-      idx = Math.floor(Math.random() * 12);
+    if (
+      this.backgroundMusic instanceof Phaser.Sound.WebAudioSound ||
+      this.backgroundMusic instanceof Phaser.Sound.HTML5AudioSound
+    ) {
+      this.backgroundMusic.setVolume(0.55);
     }
-    const text = this.add.text(
-      win.x,
-      win.y + 20,
-      topics[idx]
-    )
-    text.setFontSize(18);
-    text.setColor("black");
-    text.setFontFamily("calibri");
-    text.setAlign("center");
-    text.displayOriginX = text.width / 2;
-    const next = this.add.image(
-      win.x,
-      win.y + 200,
-      constant.TEXTURE_KEY_NEXT,
-    )
-    next.setScale(0.25);
-    next.setInteractive();
-    next.on("pointerdown", () => {
-      this.backgroundMusic?.stop();
-      this.scene.start(`SceneLevel${this.levelCount + 1}`, {});
-    });
+    this.showResultCard(true);
   }
 
   failed() {
     this.showWin = true;
-    const failed = this.add.image(
+    this.showResultCard(false);
+  }
+
+  private showResultCard(success: boolean) {
+    const shade = this.add.rectangle(
       this.screenWidth / 2,
-      this.screenHeight / 2 - 100,
-      constant.TEXTURE_KEY_FAILED,
+      this.screenHeight / 2,
+      this.screenWidth,
+      this.screenHeight,
+      0x00131f,
+      0.62
     );
-    const retry = this.add.image(
-      failed.x,
-      failed.y + 60,
-      constant.TEXTURE_KEY_RETRY,
+    shade.setInteractive();
+
+    const cardWidth = Math.min(this.screenWidth * 0.82, 880 * constant.SCALE);
+    const cardHeight = 660 * constant.SCALE;
+    const cardX = this.screenWidth / 2;
+    const cardY = this.screenHeight / 2;
+
+    const card = this.add.graphics();
+    card.fillStyle(0x05293b, 0.96);
+    card.lineStyle(Math.max(1, 3 * constant.SCALE), success ? 0x70ffe9 : 0xff8b8b, 0.75);
+    card.fillRoundedRect(cardX - cardWidth / 2, cardY - cardHeight / 2, cardWidth, cardHeight, 44 * constant.SCALE);
+    card.strokeRoundedRect(cardX - cardWidth / 2, cardY - cardHeight / 2, cardWidth, cardHeight, 44 * constant.SCALE);
+
+    const eyebrow = this.add.text(cardX, cardY - 238 * constant.SCALE, `REEF ${String(this.levelCount).padStart(2, "0")}`, {
+      fontFamily: "Arial, sans-serif",
+      fontSize: `${26 * constant.SCALE}px`,
+      fontStyle: "bold",
+      color: success ? "#86FFF0" : "#FFB1B1",
+    });
+    eyebrow.setOrigin(0.5);
+
+    const title = this.add.text(cardX, cardY - 154 * constant.SCALE, success ? "REEF BLOOMED" : "CURRENT BROKE", {
+      fontFamily: "Arial, sans-serif",
+      fontSize: `${58 * constant.SCALE}px`,
+      fontStyle: "bold",
+      color: "#FFFFFF",
+      align: "center",
+    });
+    title.setOrigin(0.5);
+
+    const scoreText = this.add.text(cardX, cardY - 52 * constant.SCALE, success ? `${this.score.toLocaleString()} PTS` : "ONE MORE TRY", {
+      fontFamily: "Arial, sans-serif",
+      fontSize: `${38 * constant.SCALE}px`,
+      fontStyle: "bold",
+      color: success ? "#FFD77A" : "#DDFBFF",
+    });
+    scoreText.setOrigin(0.5);
+
+    const verse = this.add.text(cardX, cardY + 46 * constant.SCALE, success ? reefVerses[(this.levelCount - 1) % reefVerses.length] : "Change the pattern. Find another flow.", {
+      fontFamily: "Arial, sans-serif",
+      fontSize: `${28 * constant.SCALE}px`,
+      color: "#B8DCE5",
+      align: "center",
+      wordWrap: { width: cardWidth * 0.75 },
+    });
+    verse.setOrigin(0.5);
+
+    const button = this.add.rectangle(
+      cardX,
+      cardY + 210 * constant.SCALE,
+      420 * constant.SCALE,
+      112 * constant.SCALE,
+      success ? 0x17cdbb : 0x1b9abd,
+      1
     );
-    let scale;
-    if (
-      this.screenWidth / this.screenHeight <
-      failed.width / failed.height
-    ) {
-      scale = this.screenHeight / failed.height;
-    } else {
-      scale = this.screenWidth / failed.width;
-    }
-    failed.setScale(0.25);
-    retry.setScale(0.25);
-    retry.setInteractive();
-    retry.on("pointerdown",() => {
-      this.level = this.getLevel(this.levelCount);
-      this.score = 0;
-      this.shouldPlay = true;
+    button.setStrokeStyle(Math.max(1, 2 * constant.SCALE), 0xbafff7, 0.55);
+    button.setInteractive({ useHandCursor: true });
+
+    const buttonText = this.add.text(
+      cardX,
+      cardY + 210 * constant.SCALE,
+      success ? (this.levelCount < 9 ? "NEXT REEF" : "SURFACE") : "TRY AGAIN",
+      {
+        fontFamily: "Arial, sans-serif",
+        fontSize: `${31 * constant.SCALE}px`,
+        fontStyle: "bold",
+        color: "#FFFFFF",
+      }
+    );
+    buttonText.setOrigin(0.5);
+
+    this.tweens.add({
+      targets: [card, eyebrow, title, scoreText, verse, button, buttonText],
+      alpha: { from: 0, to: 1 },
+      duration: 240,
+      ease: "Quad.easeOut",
+    });
+
+    button.on("pointerover", () => button.setScale(1.03));
+    button.on("pointerout", () => button.setScale(1));
+    button.on("pointerdown", () => {
       this.backgroundMusic?.stop();
-      this.scene.start(`SceneLevel${this.levelCount}`, {});
+      if (success) {
+        if (this.levelCount < 9) {
+          this.scene.start(`SceneLevel${this.levelCount + 1}`);
+        } else {
+          window.location.reload();
+        }
+      } else {
+        this.resetAndRestart();
+      }
     });
   }
 
+  private resetAndRestart() {
+    this.score = 0;
+    this.bloomEnergy = 0;
+    this.reefBloomCount = 0;
+    this.showWin = false;
+    this.started = false;
+    this.shouldPlay = true;
+    this.goalIcons = [];
+    this.goalTexts = [];
+    this.level = this.getLevel(this.levelCount);
+    this.scene.restart();
+  }
+
   initSound() {
-    this.dropSound = this.sound.add(constant.DROP_SOUND);
-    this.swapSound = this.sound.add(constant.SWAP_SOUND);
-    this.elinimateSound = this.sound.add(constant.ELIMINATE_SOUND);
-    this.backgroundMusic = this.sound.add(constant.BACKGROUND_MUSIC);
-    (this.backgroundMusic as Phaser.Sound.WebAudioSound).setLoop(true);
+    this.dropSound = this.sound.add(constant.DROP_SOUND, { volume: 0.55 });
+    this.swapSound = this.sound.add(constant.SWAP_SOUND, { volume: 0.5 });
+    this.elinimateSound = this.sound.add(constant.ELIMINATE_SOUND, { volume: 0.6 });
+    this.backgroundMusic = this.sound.add(constant.BACKGROUND_MUSIC, {
+      loop: true,
+      volume: 0.42,
+    });
   }
 
   private background() {
-    const background = this.add.image(
-      this.screenWidth / 2,
-      this.screenHeight / 2,
-      constant.TEXTURE_KEY_BACKGROUND
+    const background = this.add.image(this.screenWidth / 2, this.screenHeight / 2, constant.TEXTURE_KEY_BACKGROUND);
+    const scale = Math.max(this.screenWidth / background.width, this.screenHeight / background.height);
+    background.setScale(scale);
+    background.setTint(0xd8ffff);
+    background.setDepth(-30);
+
+    const vignette = this.add.graphics();
+    vignette.setDepth(-20);
+    vignette.fillStyle(0x00121d, 0.17);
+    vignette.fillRect(0, 0, this.screenWidth, this.screenHeight);
+  }
+
+  private ambientGeometry() {
+    const field = this.add.graphics();
+    field.setDepth(-16);
+    const centerX = this.screenWidth * 0.77;
+    const centerY = 220 * constant.SCALE;
+    const goldenAngle = Phaser.Math.DegToRad(137.507764);
+
+    for (let i = 0; i < 34; i++) {
+      const radius = Math.sqrt(i + 1) * 13 * constant.SCALE;
+      const angle = goldenAngle * i;
+      const x = centerX + Math.cos(angle) * radius;
+      const y = centerY + Math.sin(angle) * radius;
+      field.fillStyle(i % 5 === 0 ? 0xffd57a : 0x86fff2, i % 5 === 0 ? 0.18 : 0.11);
+      field.fillCircle(x, y, Math.max(1, (2 + (i % 3)) * constant.SCALE));
+    }
+
+    const ray = this.add.graphics();
+    ray.setDepth(-17);
+    ray.fillStyle(0xa9fff8, 0.035);
+    ray.fillTriangle(
+      this.screenWidth * 0.22,
+      0,
+      this.screenWidth * 0.42,
+      0,
+      this.screenWidth * 0.68,
+      this.screenHeight * 0.7
     );
 
-    let scale;
-    if (
-      this.screenWidth / this.screenHeight <
-      background.width / background.height
-    ) {
-      scale = this.screenHeight / background.height;
-    } else {
-      scale = this.screenWidth / background.width;
+    for (let i = 0; i < 8; i++) {
+      const bubble = this.add.circle(
+        Phaser.Math.Between(40, Math.max(41, Math.floor(this.screenWidth - 40))),
+        Phaser.Math.Between(Math.floor(this.screenHeight * 0.32), Math.floor(this.screenHeight * 0.92)),
+        Phaser.Math.Between(2, 6) * constant.SCALE,
+        0xb9fffb,
+        0.16
+      );
+      bubble.setDepth(-14);
+      this.tweens.add({
+        targets: bubble,
+        y: -20,
+        x: bubble.x + Phaser.Math.Between(-20, 20),
+        duration: Phaser.Math.Between(7000, 13000),
+        repeat: -1,
+        delay: Phaser.Math.Between(0, 5000),
+      });
     }
-    background.setScale(scale, scale);
   }
 
   private fish() {
-    {
-      const fish = this.createFish(constant.TEXTURE_KEY_PINK_FISH)!;
-      const randomX = Math.floor(Math.random() * this.screenWidth);
-      const randomY = Math.floor(Math.random() * this.screenHeight);
-      fish.setX(randomX);
-      fish.setY(randomY);
-      console.log(isMobile)
+    const fishSpecs: Array<[string, number]> = [
+      [constant.TEXTURE_KEY_PINK_FISH, 0.36],
+      [constant.TEXTURE_KEY_FISH_4, 0.27],
+      [constant.TEXTURE_KEY_JELLYFISH, 0.22],
+    ];
+
+    fishSpecs.forEach(([key, alpha]) => {
+      const fish = this.createFish(key);
+      if (!fish) return;
+      fish.setX(Math.random() * this.screenWidth);
+      fish.setY(this.screenHeight * (0.18 + Math.random() * 0.58));
+      fish.setAlpha(alpha);
+      fish.setDepth(-12);
       this.fishes.push(fish);
-    }
-    {
-      const fish = this.createFish(constant.TEXTURE_KEY_FISH_4)!;
-      const randomX = Math.floor(Math.random() * this.screenWidth);
-      const randomY = Math.floor(Math.random() * this.screenHeight);
-      fish.setX(randomX);
-      fish.setY(randomY);
-      this.fishes.push(fish);
-    }
-    {
-      const fish = this.createFish(constant.TEXTURE_KEY_JELLYFISH)!;
-      const randomX = Math.floor(Math.random() * this.screenWidth);
-      const randomY = Math.floor(Math.random() * this.screenHeight);
-      fish.setX(randomX);
-      fish.setY(randomY);
-      this.fishes.push(fish);
-    }
+    });
 
     this.time.addEvent({
-      delay: 67,
+      delay: 54,
       loop: true,
       callback: () => {
-        for (let index = 0; index < this.fishes.length; index++) {
-          const fish = this.fishes[index];
-          if (fish.x > fish.displayWidth / 2 + this.screenWidth) {
-            fish.setFlipX(true);
-          } else if (fish.x < -fish.displayWidth / 2) fish.setFlipX(false);
-
-          if (fish.flipX) {
-            fish.setX(fish.x - 1.2);
-          } else {
-            fish.setX(fish.x + 1.2);
-          }
-
-          {
-            const randomChoice = Math.random() < 0.5 ? -1 : 1;
-            fish.setY(fish.y + randomChoice * 1);
-          }
+        for (const fish of this.fishes) {
+          if (fish.x > fish.displayWidth / 2 + this.screenWidth) fish.setFlipX(true);
+          if (fish.x < -fish.displayWidth / 2) fish.setFlipX(false);
+          fish.x += fish.flipX ? -0.75 : 0.75;
+          fish.y += Math.sin((this.time.now + fish.x) * 0.002) * 0.22;
         }
       },
     });
   }
 
   private createFish(fishString: string) {
-    if (fishString === constant.TEXTURE_KEY_PINK_FISH) {
+    const config: Record<string, { key: string; end: number; rate: number; scale: number }> = {
+      [constant.TEXTURE_KEY_PINK_FISH]: { key: constant.ANIMATION_KEY_PINK_FISH, end: 3, rate: 4, scale: 0.7 },
+      [constant.TEXTURE_KEY_FISH_4]: { key: constant.ANIMATION_KEY_FISH_4, end: 4, rate: 5, scale: 0.62 },
+      [constant.TEXTURE_KEY_JELLYFISH]: { key: constant.ANIMATION_KEY_JELLYFISH, end: 19, rate: 20, scale: 0.52 },
+    };
+    const spec = config[fishString];
+    if (!spec) return undefined;
+
+    if (!this.anims.exists(spec.key)) {
       this.anims.create({
-        key: constant.ANIMATION_KEY_PINK_FISH,
-        frames: this.anims.generateFrameNumbers(
-          constant.TEXTURE_KEY_PINK_FISH,
-          {
-            start: 0,
-            end: 3,
-          }
-        ),
-        frameRate: 4,
+        key: spec.key,
+        frames: this.anims.generateFrameNumbers(fishString, { start: 0, end: spec.end }),
+        frameRate: spec.rate,
         repeat: -1,
       });
-
-      const pinkFish = this.add.sprite(0, 0, constant.TEXTURE_KEY_PINK_FISH);
-      pinkFish.anims.play(constant.ANIMATION_KEY_PINK_FISH);
-      pinkFish.setScale(constant.SCALE);
-
-      return pinkFish;
-    } else if (fishString === constant.TEXTURE_KEY_FISH_4) {
-      this.anims.create({
-        key: constant.ANIMATION_KEY_FISH_4,
-        frames: this.anims.generateFrameNumbers(constant.TEXTURE_KEY_FISH_4, {
-          start: 0,
-          end: 4,
-        }),
-        frameRate: 5,
-        repeat: -1,
-      });
-
-      const fish4 = this.add.sprite(0, 0, constant.TEXTURE_KEY_FISH_4);
-      fish4.anims.play(constant.ANIMATION_KEY_FISH_4);
-      fish4.setScale(constant.SCALE);
-
-      return fish4;
-    } else if (fishString === constant.TEXTURE_KEY_JELLYFISH) {
-      this.anims.create({
-        key: constant.ANIMATION_KEY_JELLYFISH,
-        frames: this.anims.generateFrameNumbers(
-          constant.TEXTURE_KEY_JELLYFISH,
-          {
-            start: 0,
-            end: 19,
-          }
-        ),
-        frameRate: 20,
-        repeat: -1,
-      });
-
-      const jellyfish = this.add.sprite(0, 0, constant.TEXTURE_KEY_JELLYFISH);
-      jellyfish.anims.play(constant.ANIMATION_KEY_JELLYFISH);
-      jellyfish.setScale(constant.SCALE);
-
-      return jellyfish;
     }
-  }
 
-  public play() {
-    this.backArrow();
-
-    this.music();
-    this.microphone();
-
-    this.moves();
-
-    this.hint();
-
-    this.point();
-
-    this.level!.gameArea();
-
-    this.backgroundMusic?.play();
+    const fish = this.add.sprite(0, 0, fishString);
+    fish.anims.play(spec.key);
+    fish.setScale(constant.SCALE * spec.scale);
+    return fish;
   }
 
   private backArrow() {
-    const backArrow = this.add.image(0, 0, constant.TEXTURE_KEY_BACK_ARROW);
-    backArrow.setScale((constant.SCALE * 40) / 35);
-    backArrow.setX(68 * constant.SCALE + backArrow.displayWidth / 2);
-    backArrow.setY(50 * constant.SCALE + backArrow.displayHeight / 2);
-    backArrow.setInteractive();
-    backArrow.on(
-      "pointerdown",
-      (image: Phaser.GameObjects.Image, pointer: Phaser.Input.Pointer) => {
-        window.location.reload();
-      },
-    )
+    const back = this.add.text(58 * constant.SCALE, 54 * constant.SCALE, "‹", {
+      fontFamily: "Arial, sans-serif",
+      fontSize: `${72 * constant.SCALE}px`,
+      color: "#E7FFFF",
+    });
+    back.setOrigin(0.5);
+    back.setInteractive({ useHandCursor: true });
+    back.on("pointerdown", () => window.location.reload());
   }
 
-  private music() {
-    this.musicImage = this.add.image(0, 0, constant.TEXTURE_KEY_MUSIC);
-    this.musicImage.setScale((constant.SCALE * 70) / 60);
-    this.musicImage.setX(964 * constant.SCALE + this.musicImage.displayWidth / 2);
-    this.musicImage.setY(41 * constant.SCALE + this.musicImage.displayHeight / 2);
-    this.musicImage.setInteractive();
-    const parent = this;
-    this.musicImage.on(
-      "pointerdown",
-      (image: Phaser.GameObjects.Image, pointer: Phaser.Input.Pointer) => {
-        parent.disableMusicImage?.setVisible(!parent.disableMusicImage.visible);
-        if (!parent.disableMusicImage?.visible) {
-          this.backgroundMusic?.play();
-        } else {
-          this.backgroundMusic?.stop();
-        }
-      },
-    );
+  private soundControls() {
+    this.musicImage = this.add.image(1012 * constant.SCALE, 58 * constant.SCALE, constant.TEXTURE_KEY_MUSIC);
+    this.musicImage.setScale((58 * constant.SCALE) / this.musicImage.width);
+    this.musicImage.setAlpha(0.9);
+    this.musicImage.setInteractive({ useHandCursor: true });
 
-    this.disableMusicImage = this.add.image(
-      0,
-      0,
-      constant.TEXTURE_KEY_DISABLE_AUDIO
-    );
-    this.disableMusicImage.setScale((constant.SCALE * 49) / 42);
-    this.disableMusicImage.setX(999 * constant.SCALE + this.disableMusicImage.displayWidth / 2);
-    this.disableMusicImage.setY(64 * constant.SCALE + this.disableMusicImage.displayHeight / 2);
+    this.disableMusicImage = this.add.image(1012 * constant.SCALE, 58 * constant.SCALE, constant.TEXTURE_KEY_DISABLE_AUDIO);
+    this.disableMusicImage.setScale((42 * constant.SCALE) / this.disableMusicImage.width);
     this.disableMusicImage.setVisible(false);
-  }
 
-  private microphone() {
-    this.soundImage = this.add.image(0, 0, constant.TEXTURE_KEY_MICROPHONE);
-    this.soundImage.setScale((constant.SCALE * 63) / 54);
-    this.soundImage.setX(1067 * constant.SCALE + this.soundImage.displayWidth / 2);
-    this.soundImage.setY(36 * constant.SCALE + this.soundImage.displayHeight / 2);
+    this.musicImage.on("pointerdown", () => {
+      const disabled = !this.disableMusicImage?.visible;
+      this.disableMusicImage?.setVisible(disabled);
+      if (disabled) this.backgroundMusic?.pause();
+      else this.backgroundMusic?.resume();
+    });
 
-    this.soundImage.setInteractive();
-    const parent = this;
-    this.soundImage.on(
-      "pointerdown",
-      (image: Phaser.GameObjects.Image, pointer: Phaser.Input.Pointer) => {
-        parent.disableSoundImage?.setVisible(!parent.disableSoundImage.visible);
-      },
-    );
+    this.soundImage = this.add.image(1101 * constant.SCALE, 58 * constant.SCALE, constant.TEXTURE_KEY_MICROPHONE);
+    this.soundImage.setScale((52 * constant.SCALE) / this.soundImage.width);
+    this.soundImage.setAlpha(0.9);
+    this.soundImage.setInteractive({ useHandCursor: true });
 
-    this.disableSoundImage = this.add.image(
-      0,
-      0,
-      constant.TEXTURE_KEY_DISABLE_AUDIO
-    );
-    this.disableSoundImage.setScale((constant.SCALE * 49) / 42);
-    this.disableSoundImage.setX(1095 * constant.SCALE + this.disableSoundImage.displayWidth / 2);
-    this.disableSoundImage.setY(64 * constant.SCALE + this.disableSoundImage.displayHeight / 2);
+    this.disableSoundImage = this.add.image(1101 * constant.SCALE, 58 * constant.SCALE, constant.TEXTURE_KEY_DISABLE_AUDIO);
+    this.disableSoundImage.setScale((42 * constant.SCALE) / this.disableSoundImage.width);
     this.disableSoundImage.setVisible(false);
+
+    this.soundImage.on("pointerdown", () => {
+      this.disableSoundImage?.setVisible(!this.disableSoundImage.visible);
+    });
   }
 
-  private moves() {
-    const movesFrame = this.add.image(0, 0, constant.TEXTURE_KEY_MOVES_FRAME);
-    movesFrame.setScale((constant.SCALE * 249) / 212);
-    movesFrame.setX(19 * constant.SCALE + movesFrame.displayWidth / 2);
-    movesFrame.setY(248 * constant.SCALE + movesFrame.displayHeight / 2);
+  private hud() {
+    const topPanel = this.add.graphics();
+    topPanel.fillStyle(0x041c2a, 0.57);
+    topPanel.lineStyle(Math.max(1, 2 * constant.SCALE), 0x76fff1, 0.18);
+    topPanel.fillRoundedRect(126 * constant.SCALE, 80 * constant.SCALE, 918 * constant.SCALE, 205 * constant.SCALE, 40 * constant.SCALE);
+    topPanel.strokeRoundedRect(126 * constant.SCALE, 80 * constant.SCALE, 918 * constant.SCALE, 205 * constant.SCALE, 40 * constant.SCALE);
 
-    let movesTitle = this.add.text(0, 0, "Moves", {
-      fontFamily: "calibri",
-      fontSize: `${58 * constant.SCALE}px`,
+    this.levelText = this.add.text(this.screenWidth / 2, 118 * constant.SCALE, `REEF ${String(this.levelCount).padStart(2, "0")}`, {
+      fontFamily: "Arial, sans-serif",
+      fontSize: `${24 * constant.SCALE}px`,
       fontStyle: "bold",
-      color: "#ffffff",
+      color: "#7EF7EC",
     });
-    movesTitle.setX(61 * constant.SCALE);
-    movesTitle.setY(295 * constant.SCALE);
+    this.levelText.setOrigin(0.5);
 
-    this.movesText = this.add.text(0, 0, `${constant.MAX_MOVE}`, {
-      fontFamily: "calibri",
-      fontSize: `${100 * constant.SCALE}px`,
+    const scoreLabel = this.add.text(206 * constant.SCALE, 166 * constant.SCALE, "SCORE", {
+      fontFamily: "Arial, sans-serif",
+      fontSize: `${23 * constant.SCALE}px`,
       fontStyle: "bold",
-      color: "#ffffff",
-      align: "center",
-      fixedWidth: 164 * constant.SCALE,
+      color: "#77BCC7",
     });
-    this.movesText.setX(61 * constant.SCALE);
-    this.movesText.setY(356 * constant.SCALE);
-  }
+    scoreLabel.setOrigin(0, 0.5);
 
-  private hint() {
-    this.anims.create({
-      key: constant.ANIMATION_KEY_NPC_STATIC,
-      frames: this.anims.generateFrameNumbers(constant.TEXTURE_KEY_NPC_STATIC, {
-        start: 0,
-        end: 5,
-      }),
-      frameRate: 6,
-      repeat: -1,
-    });
-
-    const npcStatic = this.add.sprite(0, 0, constant.TEXTURE_KEY_NPC_STATIC);
-    npcStatic.setScale((constant.SCALE * 206) / 89);
-    npcStatic.setX((905 + 103) * constant.SCALE);
-    npcStatic.setY(180 * constant.SCALE + npcStatic.displayHeight / 2);
-
-    npcStatic.anims.play(constant.ANIMATION_KEY_NPC_STATIC);
-
-    this.anims.create({
-      key: constant.ANIMATION_KEY_HINT_BUBBLE,
-      frames: this.anims.generateFrameNumbers(
-        constant.TEXTURE_KEY_HINT_BUBBLE,
-        {
-          start: 7,
-          end: 7,
-        }
-      ),
-      frameRate: 8,
-      repeat: -1,
-    });
-
-    const hintBubble = this.add.sprite(0, 0, constant.TEXTURE_KEY_HINT_BUBBLE);
-    hintBubble.setScale((constant.SCALE * 415) / 96);
-    hintBubble.setX(480 * constant.SCALE + hintBubble.displayWidth / 2);
-    hintBubble.setY(25 * constant.SCALE + hintBubble.displayHeight / 2);
-
-    hintBubble.anims.play(constant.ANIMATION_KEY_HINT_BUBBLE);
-  }
-
-  private point() {
-    const pointFrame = this.add.image(0, 0, constant.TEXTURE_KEY_POINT_FRAME);
-    pointFrame.setScale((constant.SCALE * 396) / 338);
-    pointFrame.setX(387 * constant.SCALE + pointFrame.displayWidth / 2);
-    pointFrame.setY(255 * constant.SCALE + pointFrame.displayHeight / 2);
-
-    this.pointText = this.add.text(0, 0, `${this.score}`, {
-      fontFamily: "calibri",
-      fontSize: `${74 * constant.SCALE}px`,
+    this.pointText = this.add.text(206 * constant.SCALE, 213 * constant.SCALE, "0", {
+      fontFamily: "Arial, sans-serif",
+      fontSize: `${48 * constant.SCALE}px`,
       fontStyle: "bold",
-      color: "#ffff00",
-      align: "center",
-      fixedWidth: 396 * constant.SCALE,
+      color: "#FFFFFF",
     });
-    this.pointText.setX(387 * constant.SCALE);
-    this.pointText.setY(255 * constant.SCALE + ((148 - 74) / 2) * constant.SCALE);
+    this.pointText.setOrigin(0, 0.5);
 
-    this.pointProgressFrame = this.add.image(
-      0,
-      0,
-      constant.TEXTURE_KEY_POINT_PROGRESS_FRAME
+    const movesLabel = this.add.text(964 * constant.SCALE, 166 * constant.SCALE, "MOVES", {
+      fontFamily: "Arial, sans-serif",
+      fontSize: `${23 * constant.SCALE}px`,
+      fontStyle: "bold",
+      color: "#77BCC7",
+    });
+    movesLabel.setOrigin(1, 0.5);
+
+    this.movesText = this.add.text(964 * constant.SCALE, 213 * constant.SCALE, `${this.moveLimit}`, {
+      fontFamily: "Arial, sans-serif",
+      fontSize: `${48 * constant.SCALE}px`,
+      fontStyle: "bold",
+      color: "#FFFFFF",
+    });
+    this.movesText.setOrigin(1, 0.5);
+
+    this.bloomLabel = this.add.text(this.screenWidth / 2, 494 * constant.SCALE, "BLOOM", {
+      fontFamily: "Arial, sans-serif",
+      fontSize: `${20 * constant.SCALE}px`,
+      fontStyle: "bold",
+      color: "#82D9D8",
+    });
+    this.bloomLabel.setOrigin(0.5);
+
+    const bloomTrack = this.add.rectangle(
+      this.screenWidth / 2,
+      538 * constant.SCALE,
+      760 * constant.SCALE,
+      8 * constant.SCALE,
+      0x6be9e5,
+      0.13
     );
-    const pointProgressFrame = this.pointProgressFrame;
-    pointProgressFrame.setScale((constant.SCALE * 938) / 800);
-    pointProgressFrame.setX(
-      209 * constant.SCALE + pointProgressFrame.displayWidth / 2
+    bloomTrack.setOrigin(0.5);
+
+    this.bloomBarFill = this.add.rectangle(
+      this.screenWidth / 2 - 380 * constant.SCALE,
+      538 * constant.SCALE,
+      1,
+      8 * constant.SCALE,
+      0xffd46e,
+      0.95
     );
-    pointProgressFrame.setY(
-      391 * constant.SCALE + pointProgressFrame.displayHeight / 2
-    );
-
-    this.pointProgress = this.add.image(
-      0,
-      0,
-      constant.TEXTURE_KEY_POINT_PROGRESS
-    );
-    this.pointProgress.setScale((constant.SCALE * constant.MAX_POINT_PROGRESS / constant.MAX_POINT_PROGRESS) / 773 * 905, (constant.SCALE * 905) / 773);
-    this.pointProgress.displayOriginX = 0
-    this.pointProgress.setX(pointProgressFrame.x - pointProgressFrame.displayWidth / 2 + 5.5);
-    this.pointProgress.setY(pointProgressFrame.y - 0.5);
-    this.pointProgress.setCrop(0,0,0,0);
-
-    // const cropRect = new Phaser.Geom.Rectangle(
-    //   0,
-    //   0,
-    //   pointProgress.width - 200,
-    //   pointProgress.height
-    // );
-    // pointProgress.setCrop(cropRect);
-
-    // Three stars at 100, 500, 1000 position
-    this.starPositions.forEach(position => {
-      this.stars.push(this.getStar(position));
-    })
-  }
-
-  private getStar(positiion: number): Phaser.GameObjects.Image {
-    const star = this.add.image(0, 0, constant.TEXTURE_KEY_STAR);
-    star.setScale((constant.SCALE * 117) / 101);
-    star.displayOriginX = 0;
-    star.setX(this.pointProgressFrame!.x - this.pointProgressFrame!.displayWidth / 2 + 8 + (positiion * this.pointProgressFrame!.displayWidth / constant.MAX_POINT_PROGRESS) - star.displayWidth / 2);
-    star.setY(379 * constant.SCALE + star.displayHeight / 2);
-    star.setAlpha(0.5);
-    return star;
+    this.bloomBarFill.setOrigin(0, 0.5);
+    this.updateBloomBar();
   }
 }
