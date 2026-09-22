@@ -1,103 +1,68 @@
-.menu-container {
-  width: 84.4vw;
-  position: fixed;
+.reef-menu {
+  position: absolute;
+  left: 50%;
+  bottom: clamp(18px, 3.5vh, 38px);
+  transform: translateX(-50%);
+  z-index: 24;
   display: flex;
-  flex-direction: row;
-  left: 7.78vw;
-  bottom: 5.38vw;
-  justify-content: space-between;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  width: min(92%, 520px);
 }
 
-.bubble-container {
-  width: 22.82vw;
-  height: 22.82vw;
-  position: relative;
+.reef-menu__item {
+  appearance: none;
+  border: 1px solid rgba(151, 255, 244, 0.17);
+  background: rgba(2, 29, 43, 0.54);
+  color: rgba(229, 255, 252, 0.78);
+  border-radius: 999px;
+  min-height: 36px;
+  padding: 8px 13px;
+  font: 600 11px/1.1 Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  cursor: pointer;
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  transition: transform .16s ease, border-color .16s ease, background .16s ease, color .16s ease;
 }
 
-.bubble-image {
-  width: 22.82vw;
-  position: absolute;
-  left: 0;
-  top: 0;
-  height: 22.82vw;
+.reef-menu__item:hover {
+  transform: translateY(-2px);
+  color: #f5fffe;
+  border-color: rgba(151, 255, 244, .38);
+  background: rgba(4, 49, 62, .72);
 }
 
-.new-game-image {
-  width: 16.07vw;
-  height: 11.54vw;
-  position: absolute;
-  top: 5.64vw;
-  left: 3.33vw;
+.reef-menu__item--quiet {
+  color: rgba(198, 225, 226, .55);
 }
 
-.new-game-text-image {
-  width: 22.82vw;
-  height: 5.2vw;
-  position: absolute;
-  top: 17.436vw;
-  left: 0;
+.reef-menu__dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  box-shadow: 0 0 12px currentColor;
 }
 
-.new-game-image {
-  width: 16.07vw;
-  height: 11.54vw;
-  position: absolute;
-  top: 5.64vw;
-  left: 3.33vw;
-}
+.reef-menu__dot--gold { background: #ffd574; color: #ffd574; }
+.reef-menu__dot--aqua { background: #67f7e7; color: #67f7e7; }
+.reef-menu__dot--coral { background: #ff8f82; color: #ff8f82; }
 
-.new-game-text-image {
-  width: 22.82vw;
-  height: 5.2vw;
-  position: absolute;
-  top: 17.436vw;
-  left: 0;
-}
+@media (max-width: 430px) {
+  .reef-menu {
+    gap: 6px;
+    bottom: 17px;
+  }
 
-.eco-points-image {
-  width: 10.6vw;
-  height: 13.76vw;
-  position: absolute;
-  top: 4.36vw;
-  left: 6.41vw;
-}
-
-.eco-points-text-image {
-  width: 20.62vw;
-  height: 5.2vw;
-  position: absolute;
-  top: 17.436vw;
-  left: 0.6vw;
-}
-
-.ocean-trivia-image {
-  width: 14.53vw;
-  height: 14.36vw;
-  position: absolute;
-  top: 4.36vw;
-  left: 4.1vw;
-}
-
-.ocean-trivia-text-image {
-  width: 22.82vw;
-  height: 5.2vw;
-  position: absolute;
-  top: 17.436vw;
-  left: 0;
-}
-
-.our-sponsor-image {
-  width: 17.6vw;
-  height: 15.3vw;
-  position: absolute;
-  top: 4.1vw;
-  left: 3.077vw;
-}
-
-.our-sponsor-text-image {
-  width: 24.02vw;
-  height: 6.2vw;
-  position: absolute;
-  top: 17.436vw;
-  left: 0;
+  .reef-menu__item {
+    font-size: 9px;
+    min-height: 32px;
+    padding: 7px 10px;
+  }
 }

@@ -1,67 +1,31 @@
 import "./Menu.css";
 
-function Menu(props: {
+type MenuProps = {
   onEcoPointsClick: () => void;
   onOceanTriviaClick: () => void;
   onOurSponsorClick: () => void;
-}) {
+  onAboutClick: () => void;
+};
+
+function Menu(props: MenuProps) {
   return (
-    <div className="menu-container">
-      <div
-        className="bubble-container"
-        onClick={() => {
-          props.onEcoPointsClick();
-        }}
-      >
-        <img className="bubble-image" alt="" src="images/menu/bubble.png" />
-        <img
-          className="eco-points-image"
-          alt=""
-          src="images/menu/eco-points.png"
-        />
-        <img
-          className="eco-points-text-image"
-          alt=""
-          src="images/menu/eco-points-text.png"
-        />
-      </div>
-      <div
-        className="bubble-container"
-        onClick={() => {
-          props.onOceanTriviaClick();
-        }}
-      >
-        <img className="bubble-image" alt="" src="images/menu/bubble.png" />
-        <img
-          className="ocean-trivia-image"
-          alt=""
-          src="images/menu/ocean-trivia.png"
-        />
-        <img
-          className="ocean-trivia-text-image"
-          alt=""
-          src="images/menu/ocean-trivia-text.png"
-        />
-      </div>
-      <div
-        className="bubble-container"
-        onClick={() => {
-          props.onOurSponsorClick();
-        }}
-      >
-        <img className="bubble-image" alt="" src="images/menu/bubble.png" />
-        <img
-          className="our-sponsor-image"
-          alt=""
-          src="images/menu/our-sponsor.png"
-        />
-        <img
-          className="our-sponsor-text-image"
-          alt=""
-          src="images/menu/our-sponsor-text.png"
-        />
-      </div>
-    </div>
+    <nav className="reef-menu" aria-label="Coral Cadet extras">
+      <button className="reef-menu__item" onClick={props.onEcoPointsClick}>
+        <span className="reef-menu__dot reef-menu__dot--gold" />
+        Reef score
+      </button>
+      <button className="reef-menu__item" onClick={props.onOceanTriviaClick}>
+        <span className="reef-menu__dot reef-menu__dot--aqua" />
+        Ocean cards
+      </button>
+      <button className="reef-menu__item" onClick={props.onAboutClick}>
+        <span className="reef-menu__dot reef-menu__dot--coral" />
+        About
+      </button>
+      <button className="reef-menu__item reef-menu__item--quiet" onClick={props.onOurSponsorClick}>
+        Support
+      </button>
+    </nav>
   );
 }
 
