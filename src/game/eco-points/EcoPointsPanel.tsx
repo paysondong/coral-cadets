@@ -1,46 +1,16 @@
 import "./EcoPointsPanel.css";
 
 function EcoPointsPanel(props: { onCloseClick: () => void }) {
-  const buttonSound = new Audio("audio/button.mp3");
-  const points = localStorage.getItem("ecoScore");
+  const points = Number(localStorage.getItem("ecoScore") || 0);
   return (
-    <div className="eco-points-panel">
-      <img
-        src="images/menu/our-sponsor-panel-background.png"
-        className="eco-points-panel-background"
-        alt=""
-      />
-
-      <img
-        src="images/menu/information-board-close.png"
-        className="eco-points-panel-close"
-        alt=""
-        onClick={() => {
-          buttonSound.play();
-          props.onCloseClick();
-        }}
-      />
-
-      <img
-        src="images/menu/eco-points-panel-title.png"
-        className="eco-points-panel-title"
-        alt=""
-      />
-
-      <img
-        src="images/menu/eco-points-panel-button.png"
-        className="eco-points-panel-button"
-        alt=""
-      />
-
-      <img
-        src="images/menu/eco-points-panel-button-text.png"
-        className="eco-points-panel-button-text"
-        alt=""
-      />
-      <div className="eco-points-score">
-        {points ? points : 0}
-      </div>
+    <div className="reef-modal-layer" onMouseDown={props.onCloseClick}>
+      <section className="reef-modal reef-score" onMouseDown={(event) => event.stopPropagation()}>
+        <button className="reef-modal__close" onClick={props.onCloseClick} aria-label="Close">×</button>
+        <div className="reef-modal__eyebrow">REEF SCORE</div>
+        <div className="reef-score__number">{points.toLocaleString()}</div>
+        <div className="reef-score__rule" />
+        <p>Every clean chain adds to the reef. Long matches, symmetry and cascading patterns grow it faster.</p>
+      </section>
     </div>
   );
 }
