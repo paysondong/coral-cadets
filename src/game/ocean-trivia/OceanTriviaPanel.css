@@ -1,84 +1,80 @@
-.ocean-trivia-panel {
-  width: 91vw;
-  height: 117vw;
-  margin-left: 4.5vw;
-  margin-top: 40vw;
-  position: fixed;
+.ocean-cards h2 {
+  margin: 0 0 22px;
+  font: 800 28px/1 Inter, system-ui, sans-serif;
+  letter-spacing: -.035em;
+}
+
+.ocean-cards__grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 9px;
+}
+
+.ocean-card {
+  aspect-ratio: 1;
+  border-radius: 17px;
+  border: 1px solid rgba(113, 255, 240, .18);
+  background: rgba(5, 64, 77, .56);
+  color: #eafffc;
+  cursor: pointer;
   display: flex;
   flex-direction: column;
-  top: 0;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
 }
 
-.ocean-trivia-panel-background {
-  width: 100%;
-  position: absolute;
-  height: 100%;
-  left: 0;
-  z-index: -1;
+.ocean-card span {
+  font: 800 12px/1 Inter, system-ui, sans-serif;
+  letter-spacing: .1em;
 }
 
-.ocean-trivia-panel-close {
-  width: 8.12vw;
-  height: 8.3vw;
-  position: relative;
-  align-self: flex-end;
-  margin-top: 5.2vw;
-  margin-right: 6.7vw;
+.ocean-card i {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #6dffef;
+  box-shadow: 0 0 10px #6dffef;
 }
 
-.ocean-trivia-panel-title {
-  width: 44.27vw;
-  height: 7.6vw;
-  position: relative;
-  align-self: center;
-  margin-top: 7.265vw;
+.ocean-card--locked {
+  opacity: .24;
+  cursor: default;
+  filter: grayscale(1);
 }
 
-.ocean-trivia-panel-content {
-  width: 73.5vw;
-  height: 21.71vw;
-  position: relative;
-  align-self: center;
-  margin-top: 11.71vw;
-}
-
-.ocean-trivia-panel-topics {
-  margin-left: 5vw;
-  margin-right: 5vw;
-  margin-top: 2vw;
-}
-
-.ocean-trivia-panel-topic-container {
-  position: relative;
+.ocean-card-detail {
   text-align: center;
-  color: white;
+  padding: 10px 2px 2px;
 }
 
-.ocean-trivia-panel-topic-container div {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  font-size: 8vw;
-}
-.ocean-trivia-panel-topic-close {
-  width: 8.12vw;
-  height: 8.3vw;
-  position: relative;
-  align-self: flex-end;
-  margin-top: 10vw;
-  margin-right: 40vw;
+.ocean-card-detail__mark {
+  width: 66px;
+  height: 66px;
+  margin: 4px auto 18px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 211, 113, .3);
+  color: #ffd371;
+  font-size: 34px;
 }
 
-.ocean-trivia-panel-topic  {
-  margin-top: 10vw;
-  margin-left: 5vw;
-  margin-right: 5vw;
-  font-family: "Calibri";
-  font-size: 6vw;
-  color:darkblue;
+.ocean-card-detail p {
+  margin: 0 auto;
+  max-width: 300px;
+  color: rgba(231, 253, 253, .82);
+  font-size: 16px;
 }
 
-.ocean-trivia-panel-topic-container-disabled {
-  opacity: .5;
+.ocean-card-detail button {
+  margin-top: 28px;
+  border: 1px solid rgba(116,255,240,.24);
+  border-radius: 999px;
+  padding: 10px 17px;
+  background: rgba(7, 84, 91, .44);
+  color: #cffff8;
+  cursor: pointer;
+  font: 800 9px/1 Inter, system-ui, sans-serif;
+  letter-spacing: .15em;
 }
