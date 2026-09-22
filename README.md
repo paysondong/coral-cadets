@@ -1,61 +1,74 @@
-# CoralCadets 🪸
+# CoralCadet — Pattern Reef
 
-**A living coral puzzle game.**
+这是在原始《珊瑚消消乐 / CoralCadet》代码上**直接升级**的版本，不是另起炉灶的新项目。
 
-CoralCadets began as a small coral-themed match-3 web game. This repository starts by preserving the original playable version, then documents its evolution toward a more distinctive game built around visual art, mathematical patterns, and coral-reef conservation.
+## 这版的设计原则
 
-## v0.1.0 — Original Version
+- **先好玩**：仍然是 9 关三消游戏，保留原有海洋角色、垃圾元素、鱼群动画、音效和关卡形状。
+- **艺术性藏在反馈里**：深海玻璃 UI、生物荧光、黄金角粒子、珊瑚生长签名、连锁波纹。
+- **数学藏在玩法里**：玩家不需要上课，也不需要读公式；4 连、5 连、十字、3→5→8 连锁会自然触发不同的视觉与奖励。
+- **生态藏在世界里**：漂亮的连锁会让背景珊瑚继续“长出来”，而不是要求玩家管理 pH、氧气和仪表盘。
 
-This first public release intentionally keeps the original game design intact. It is the baseline for future redesigns rather than the finished portfolio edition.
+## 新玩法
 
-### Original game features
+- 3 连：普通 Match
+- 4 连：`PULSE`，会额外清除邻接单元
+- 5 连及以上：`φ BLOOM`，产生更大的局部爆发
+- 十字 / T 型结构：`SYMMETRY WAVE`
+- 连锁深度到 3 / 5 / 8：`FIBONACCI FLOW`
+- Bloom 能量满：触发 `REEF BLOOM`，获得额外分数并让背景珊瑚生长
+- 无效交换：**不扣步数**
+- 完成目标：**立即过关**，不需要把剩余步数耗完
+- 支持滑动交换，也支持点选两个相邻元素交换
+- 棋盘无可走步骤时会自动 `CURRENT SHIFT`
 
-- 9 playable match-3 levels
-- Coral and marine-life themed pieces
-- Phaser 3 game scenes
-- React + TypeScript interface
-- Score, moves and level objectives
-- Music and sound effects
-- Ocean trivia / conservation content
-- Local progress and eco-points features from the original prototype
+## 运行
 
-## Run locally
-
-Requirements: a recent Node.js + npm installation.
+推荐 Node.js 18+。
 
 ```bash
 npm install
 npm start
 ```
 
-Then open `http://localhost:3000`.
+浏览器打开：
 
-If you need the optional Google OAuth configuration, copy `.env.example` to `.env` and provide your own client ID. Never commit real credentials.
+```text
+http://localhost:3000
+```
 
-## Project direction
+现在桌面和手机共用同一个响应式游戏入口，不再跳转到旧的 `desktop.html` iframe。
 
-The goal is to keep CoralCadets a **small, relaxing web game** while making it more original through:
+生产构建：
 
-- stronger art direction and animation;
-- mathematical ideas expressed through gameplay rather than lessons;
-- coral restoration shown through the world becoming more alive;
-- lightweight, optional coral-conservation knowledge;
-- multilingual support;
-- a public development history showing how the project changes through playtesting and iteration.
+```bash
+npm run build
+```
 
-See [docs/ROADMAP.md](docs/ROADMAP.md) for the planned evolution.
+## 代码重点
 
-## Technology
+```text
+src/game/
+├── Game.tsx              # 原入口直接升级后的启动界面
+├── SceneLevel.ts         # 游戏 HUD、视觉反馈、胜负界面、Bloom
+├── Level.ts              # 原关卡结构 + 关卡色彩组合 / 目标
+├── LevelUtils.ts         # 原三消交换/掉落逻辑的升级版
+├── PatternEngine.ts      # 纯数学匹配分析：4/5连、十字、可行交换
+├── Layout.ts             # 手机/桌面统一纵向画布
+├── Level1.ts ... Level9.ts
+└── menu/                 # 极简游戏入口菜单
+```
 
-- React 18
-- TypeScript
-- Phaser 3
-- Create React App
+原始图片和音频资源仍在 `public/images` 与 `public/audio` 中继续使用。
 
-## Repository note
+## 版本
 
-This repository begins with the original version on purpose. Future releases will make the progression visible through Git tags and GitHub Releases instead of replacing or hiding the earlier work.
+`0.2.0 — Original Direct Upgrade`
+
+## Release history
+
+The original version is preserved in [v0.1.0](https://github.com/paysondong/coral-cadets/releases/tag/v0.1.0).
 
 ## Licensing
 
-No open-source license is attached to v0.1.0 yet. The code and media are publicly viewable, but reuse rights have not been granted. Before the project is formally opened for reuse, code licensing and artwork/audio licensing will be documented separately.
+No open-source license is attached yet. The code and media are publicly viewable, but reuse rights have not been granted.
