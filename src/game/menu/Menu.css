@@ -14,9 +14,9 @@
 
 .reef-menu__item {
   appearance: none;
-  border: 1px solid rgba(151, 255, 244, 0.17);
-  background: rgba(2, 29, 43, 0.54);
-  color: rgba(229, 255, 252, 0.78);
+  border: 1px solid var(--reef-soft-line);
+  background: var(--reef-panel-soft);
+  color: var(--reef-muted);
   border-radius: 999px;
   min-height: 36px;
   padding: 8px 13px;
@@ -34,13 +34,13 @@
 
 .reef-menu__item:hover {
   transform: translateY(-2px);
-  color: #f5fffe;
-  border-color: rgba(151, 255, 244, .38);
-  background: rgba(4, 49, 62, .72);
+  color: var(--reef-ink-soft);
+  border-color: var(--reef-accent-line);
+  background: var(--reef-panel-active);
 }
 
 .reef-menu__item--quiet {
-  color: rgba(198, 225, 226, .55);
+  color: var(--reef-muted-soft);
 }
 
 .reef-menu__dot {
@@ -50,9 +50,9 @@
   box-shadow: 0 0 12px currentColor;
 }
 
-.reef-menu__dot--gold { background: #ffd574; color: #ffd574; }
-.reef-menu__dot--aqua { background: #67f7e7; color: #67f7e7; }
-.reef-menu__dot--coral { background: #ff8f82; color: #ff8f82; }
+.reef-menu__dot--gold { background: var(--reef-gold); color: var(--reef-gold); }
+.reef-menu__dot--aqua { background: var(--reef-aqua); color: var(--reef-aqua); }
+.reef-menu__dot--coral { background: var(--reef-coral); color: var(--reef-coral); }
 
 @media (max-width: 430px) {
   .reef-menu {
