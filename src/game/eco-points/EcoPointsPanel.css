@@ -4,7 +4,7 @@
 
 .reef-score__number {
   margin-top: 19px;
-  color: #ffd574;
+  color: var(--reef-gold);
   font: 800 clamp(52px, 14vw, 74px)/.9 Inter, system-ui, sans-serif;
   letter-spacing: -.06em;
   text-shadow: 0 0 30px rgba(255, 213, 116, .13);
@@ -14,5 +14,5 @@
   width: 86px;
   height: 2px;
   margin: 23px auto 0;
-  background: linear-gradient(90deg, transparent, #74fff0, transparent);
+  background: linear-gradient(90deg, transparent, var(--reef-aqua), transparent);
 }
