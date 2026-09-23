@@ -3,9 +3,9 @@
   margin-top: 27px;
   min-height: 48px;
   border-radius: 999px;
-  border: 1px solid rgba(126, 255, 242, .28);
+  border: 1px solid var(--reef-accent-line);
   background: linear-gradient(100deg, rgba(17, 157, 151, .62), rgba(6, 76, 105, .7));
-  color: #f2fffd;
+  color: var(--reef-ink-soft);
   cursor: pointer;
   font: 800 10px/1 Inter, system-ui, sans-serif;
   letter-spacing: .15em;
