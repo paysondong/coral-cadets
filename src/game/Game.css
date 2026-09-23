@@ -3,6 +3,23 @@
   --reef-gold: #ffd474;
   --reef-coral: #ff8d7b;
   --reef-ink: #02131f;
+  --reef-stage-a: #010b12;
+  --reef-stage-b: #021824;
+  --reef-stage-c: #01080d;
+  --reef-glow: rgba(32, 191, 193, .18);
+  --reef-secondary-glow: rgba(255, 115, 123, .08);
+  --reef-shell: #031622;
+  --reef-shell-line: rgba(116, 255, 240, .08);
+  --reef-shell-glow: rgba(22, 183, 180, .08);
+  --reef-ink-soft: #efffff;
+  --reef-muted: rgba(218, 247, 248, .74);
+  --reef-muted-soft: rgba(170, 221, 226, .53);
+  --reef-soft-line: rgba(151, 255, 244, .14);
+  --reef-accent-line: rgba(151, 255, 244, .36);
+  --reef-accent-line-strong: rgba(151, 255, 244, .62);
+  --reef-accent-inset: rgba(151, 255, 244, .08);
+  --reef-panel-soft: rgba(2, 29, 43, .42);
+  --reef-panel-active: rgba(4, 49, 62, .68);
 }
 
 * {
@@ -17,9 +34,9 @@
   position: relative;
   overflow: hidden;
   background:
-    radial-gradient(circle at 50% 18%, rgba(32, 191, 193, .18), transparent 34%),
-    radial-gradient(circle at 18% 80%, rgba(255, 115, 123, .08), transparent 26%),
-    linear-gradient(145deg, #010b12 0%, #021824 48%, #01080d 100%);
+    radial-gradient(circle at 50% 18%, var(--reef-glow), transparent 34%),
+    radial-gradient(circle at 18% 80%, var(--reef-secondary-glow), transparent 26%),
+    linear-gradient(145deg, var(--reef-stage-a) 0%, var(--reef-stage-b) 48%, var(--reef-stage-c) 100%);
   color: #fff;
 }
 
@@ -50,11 +67,11 @@
   max-width: 100vw;
   overflow: hidden;
   isolation: isolate;
-  background: #031622;
+  background: var(--reef-shell);
   box-shadow:
-    0 0 0 1px rgba(116, 255, 240, .08),
+    0 0 0 1px var(--reef-shell-line),
     0 40px 120px rgba(0, 0, 0, .58),
-    0 0 120px rgba(22, 183, 180, .08);
+    0 0 120px var(--reef-shell-glow);
 }
 
 .scene {
@@ -176,7 +193,7 @@
   z-index: 1;
   max-width: 310px;
   margin: 28px auto 0;
-  color: rgba(218, 247, 248, .74);
+  color: var(--reef-muted);
   font: 450 14px/1.6 Inter, ui-sans-serif, system-ui, sans-serif;
 }
 
@@ -222,7 +239,7 @@
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 7px 16px;
-  color: rgba(170, 221, 226, .53);
+  color: var(--reef-muted-soft);
   font: 700 8px/1.4 Inter, ui-sans-serif, system-ui, sans-serif;
   letter-spacing: .13em;
 }
@@ -275,6 +292,63 @@
 
 body > iframe {
   display: none;
+}
+
+.coral-stage[data-theme="sunset"] {
+  --reef-aqua: #ff9b87;
+  --reef-gold: #ffd27a;
+  --reef-coral: #ff6f9c;
+  --reef-ink: #151329;
+  --reef-stage-a: #0e0b18;
+  --reef-stage-b: #211632;
+  --reef-stage-c: #0b0a14;
+  --reef-glow: rgba(255, 130, 104, .17);
+  --reef-secondary-glow: rgba(165, 140, 255, .13);
+  --reef-shell: #171128;
+  --reef-shell-line: rgba(255, 155, 135, .12);
+  --reef-shell-glow: rgba(165, 140, 255, .09);
+  --reef-ink-soft: #fff8f4;
+  --reef-muted: rgba(244, 222, 232, .77);
+  --reef-muted-soft: rgba(208, 179, 202, .58);
+  --reef-soft-line: rgba(255, 155, 135, .16);
+  --reef-accent-line: rgba(255, 155, 135, .38);
+  --reef-accent-line-strong: rgba(255, 155, 135, .68);
+  --reef-accent-inset: rgba(255, 155, 135, .09);
+  --reef-panel-soft: rgba(37, 24, 48, .48);
+  --reef-panel-active: rgba(62, 35, 67, .72);
+}
+
+.coral-stage[data-theme="moon"] {
+  --reef-aqua: #a7b4ff;
+  --reef-gold: #e9bc62;
+  --reef-coral: #ff9a85;
+  --reef-ink: #090b1b;
+  --reef-stage-a: #060817;
+  --reef-stage-b: #111730;
+  --reef-stage-c: #050612;
+  --reef-glow: rgba(143, 162, 255, .16);
+  --reef-secondary-glow: rgba(255, 246, 239, .07);
+  --reef-shell: #0d1126;
+  --reef-shell-line: rgba(167, 180, 255, .13);
+  --reef-shell-glow: rgba(113, 129, 210, .1);
+  --reef-ink-soft: #f8f7ff;
+  --reef-muted: rgba(220, 221, 240, .76);
+  --reef-muted-soft: rgba(174, 181, 213, .57);
+  --reef-soft-line: rgba(167, 180, 255, .16);
+  --reef-accent-line: rgba(167, 180, 255, .38);
+  --reef-accent-line-strong: rgba(167, 180, 255, .68);
+  --reef-accent-inset: rgba(167, 180, 255, .09);
+  --reef-panel-soft: rgba(18, 22, 48, .48);
+  --reef-panel-active: rgba(27, 34, 67, .72);
+}
+
+@media (max-height: 760px) {
+  .reef-landing { padding-top: 5vh; }
+  .reef-landing__index { margin-bottom: 3.5vh; }
+  .reef-landing__mark { width: 96px; height: 96px; margin-bottom: 18px; }
+  .reef-landing__statement { margin-top: 18px; }
+  .reef-play { margin-top: 22px; }
+  .reef-landing__rules { margin-top: 20px; }
 }
 
 @media (prefers-reduced-motion: reduce) {

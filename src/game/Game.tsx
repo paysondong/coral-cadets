@@ -18,6 +18,8 @@ import { SceneLevel7 } from "./SceneLevel7";
 import { SceneLevel8 } from "./SceneLevel8";
 import { SceneLevel9 } from "./SceneLevel9";
 import { getGameViewport } from "./Layout";
+import ThemePicker from "./theme/ThemePicker";
+import { getSavedThemeId, REEF_THEMES, ReefThemeId, saveTheme } from "./theme/Theme";
 
 function Game() {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -34,6 +36,7 @@ function Game() {
   const [oceanTriviaPanelHidden, setOceanTriviaPanelHidden] = useState(true);
   const [ourSponsorPanelHidden, setOurSponsorPanelHidden] = useState(true);
   const [loading, setLoading] = useState(true);
+  const [themeId, setThemeId] = useState<ReefThemeId>(() => getSavedThemeId());
 
   useEffect(() => {
     buttonSoundRef.current = new Audio("audio/button.mp3");
@@ -41,6 +44,7 @@ function Game() {
 
     if (!canvasRef.current || gameRef.current) return;
     const viewport = getGameViewport();
+    const initialTheme = REEF_THEMES[getSavedThemeId()];
     const config: Phaser.Types.Core.GameConfig = {
       type: Phaser.WEBGL,
       width: viewport.width,
@@ -57,7 +61,7 @@ function Game() {
         SceneLevel9,
       ],
       canvas: canvasRef.current,
-      backgroundColor: "#02131f",
+      backgroundColor: initialTheme.phaser.gameBackground,
       antialias: true,
       render: {
         powerPreference: "high-performance",
@@ -88,6 +92,12 @@ function Game() {
     void sound.play().catch(() => undefined);
   };
 
+  const changeTheme = (nextTheme: ReefThemeId) => {
+    clickSound();
+    setThemeId(nextTheme);
+    saveTheme(nextTheme);
+  };
+
   const startGame = () => {
     const scene = gameRef.current?.scene.getScene("SceneLevel1") as SceneLevel1 | undefined;
     if (!scene?.loaded || !gameRef.current) return;
@@ -102,14 +112,14 @@ function Game() {
   };
 
   return (
-    <main className="coral-stage">
+    <main className="coral-stage" data-theme={themeId}>
       <div className="coral-stage__ambient" aria-hidden="true">
         <span />
         <span />
         <span />
       </div>
 
-      <section className="game-shell" aria-label="Coral Cadet game">
+      <section className="game-shell" aria-label="CoralCadets game">
         <canvas className="scene" ref={canvasRef} />
         <div className="game-shell__glass" aria-hidden="true" />
 
@@ -120,7 +130,7 @@ function Game() {
                 <i key={index} style={{ "--i": index } as React.CSSProperties} />
               ))}
             </div>
-            <div className="reef-loading__brand">CORALCADET</div>
+            <div className="reef-loading__brand">CORALCADETS</div>
             <div className="reef-loading__copy">Growing the reef…</div>
           </div>
         ) : !started ? (
@@ -132,7 +142,7 @@ function Game() {
                 <span className="reef-landing__orbit reef-landing__orbit--two" />
                 <span className="reef-landing__core" />
               </div>
-              <h1>CORALCADET</h1>
+              <h1>CORALCADETS</h1>
               <p className="reef-landing__subtitle">Pattern Reef</p>
               <p className="reef-landing__statement">
                 Match colour. Build chains. Let the reef bloom.
@@ -147,6 +157,7 @@ function Game() {
                 <span>5 · φ BLOOM</span>
                 <span>3→5→8 · FLOW</span>
               </div>
+              <ThemePicker value={themeId} onChange={changeTheme} />
             </div>
 
             <Menu

@@ -11,6 +11,7 @@ import { Level8 } from "./Level8";
 import { Level9 } from "./Level9";
 import { CONTEXT, MatchSummary } from "./LevelUtils";
 import { getGameViewport } from "./Layout";
+import { getSavedTheme, REEF_THEMES, ReefTheme, ReefThemeId, THEME_EVENT } from "./theme/Theme";
 
 const reefVerses = [
   "A new rhythm appears in the reef.",
@@ -53,6 +54,67 @@ export class SceneLevel extends Phaser.Scene {
   public showWin = false;
   private started = false;
   private moveLimit: number;
+  private reefTheme: ReefTheme = getSavedTheme();
+  private backgroundImage?: Phaser.GameObjects.Image;
+  private vignetteGraphics?: Phaser.GameObjects.Graphics;
+  private ambientFieldGraphics?: Phaser.GameObjects.Graphics;
+  private ambientRayGraphics?: Phaser.GameObjects.Graphics;
+  private ambientBubbles: Phaser.GameObjects.Arc[] = [];
+
+  private colorHex(value: number) {
+    return `#${value.toString(16).padStart(6, "0")}`;
+  }
+
+  private onThemeChange = (event: Event) => {
+    const detail = (event as CustomEvent<{ themeId?: ReefThemeId }>).detail;
+    if (!detail?.themeId) return;
+    this.reefTheme = REEF_THEMES[detail.themeId];
+    this.applyThemeToEnvironment();
+  };
+
+  private applyThemeToEnvironment() {
+    const theme = this.reefTheme.phaser;
+    this.cameras.main.setBackgroundColor(theme.gameBackground);
+    this.backgroundImage?.setTint(theme.backgroundTint);
+
+    if (this.vignetteGraphics) {
+      this.vignetteGraphics.clear();
+      this.vignetteGraphics.fillStyle(theme.vignette, 0.17);
+      this.vignetteGraphics.fillRect(0, 0, this.screenWidth, this.screenHeight);
+    }
+
+    if (this.ambientFieldGraphics) {
+      const field = this.ambientFieldGraphics;
+      field.clear();
+      const centerX = this.screenWidth * 0.77;
+      const centerY = 220 * constant.SCALE;
+      const goldenAngle = Phaser.Math.DegToRad(137.507764);
+      for (let i = 0; i < 34; i++) {
+        const radius = Math.sqrt(i + 1) * 13 * constant.SCALE;
+        const angle = goldenAngle * i;
+        const x = centerX + Math.cos(angle) * radius;
+        const y = centerY + Math.sin(angle) * radius;
+        field.fillStyle(i % 5 === 0 ? theme.gold : theme.accent, i % 5 === 0 ? 0.18 : 0.11);
+        field.fillCircle(x, y, Math.max(1, (2 + (i % 3)) * constant.SCALE));
+      }
+    }
+
+    if (this.ambientRayGraphics) {
+      const ray = this.ambientRayGraphics;
+      ray.clear();
+      ray.fillStyle(theme.ray, 0.035);
+      ray.fillTriangle(
+        this.screenWidth * 0.22,
+        0,
+        this.screenWidth * 0.42,
+        0,
+        this.screenWidth * 0.68,
+        this.screenHeight * 0.7
+      );
+    }
+
+    this.ambientBubbles.forEach((bubble) => bubble.setFillStyle(theme.bubble, 0.16));
+  }
 
   public addScore(score: number) {
     this.score += score;
@@ -84,8 +146,8 @@ export class SceneLevel extends Phaser.Scene {
 
     centers.forEach((cx, index) => {
       const panel = this.add.graphics();
-      panel.fillStyle(0x031f30, 0.74);
-      panel.lineStyle(Math.max(1, 2 * constant.SCALE), 0x5df6ee, 0.26);
+      panel.fillStyle(this.reefTheme.phaser.panel, 0.74);
+      panel.lineStyle(Math.max(1, 2 * constant.SCALE), this.reefTheme.phaser.accent, 0.26);
       panel.fillRoundedRect(
         (cx - 112) * constant.SCALE,
         318 * constant.SCALE,
@@ -117,7 +179,7 @@ export class SceneLevel extends Phaser.Scene {
           fontFamily: "Arial, sans-serif",
           fontSize: `${34 * constant.SCALE}px`,
           fontStyle: "bold",
-          color: "#E8FFFF",
+          color: this.colorHex(this.reefTheme.phaser.accentAlt),
         }
       );
       this.goalTexts.push(text);
@@ -152,12 +214,12 @@ export class SceneLevel extends Phaser.Scene {
 
   public onInvalidMove() {
     this.cameras.main.shake(70, 0.0016);
-    this.showFloatingLabel("TRY ANOTHER CURRENT", 0x8be9ff, 0.75);
+    this.showFloatingLabel("TRY ANOTHER CURRENT", this.reefTheme.phaser.accentAlt, 0.75);
   }
 
   public onBoardShift() {
-    this.cameras.main.flash(180, 72, 211, 208, false);
-    this.showFloatingLabel("CURRENT SHIFT", 0x76fff1, 0.9);
+    this.cameras.main.flash(180, 92, 74, 122, false);
+    this.showFloatingLabel("CURRENT SHIFT", this.reefTheme.phaser.accent, 0.9);
   }
 
   public onMatchResolved(
@@ -172,13 +234,13 @@ export class SceneLevel extends Phaser.Scene {
     this.matchRipple(x, y, summary.pattern);
 
     if (summary.pattern === "pulse") {
-      this.showPatternLabel("PULSE", "+" + score, 0x72f7ff);
+      this.showPatternLabel("PULSE", "+" + score, this.reefTheme.phaser.accentAlt);
     } else if (summary.pattern === "golden") {
-      this.showPatternLabel("φ BLOOM", "+" + score, 0xffd77a);
+      this.showPatternLabel("φ BLOOM", "+" + score, this.reefTheme.phaser.gold);
     } else if (summary.pattern === "symmetry") {
-      this.showPatternLabel("SYMMETRY WAVE", "+" + score, 0xf2a3ff);
+      this.showPatternLabel("SYMMETRY WAVE", "+" + score, this.reefTheme.phaser.violet);
     } else if (cascade > 1) {
-      this.showPatternLabel(`CHAIN ×${cascade}`, `+${score}`, 0x9fffc7);
+      this.showPatternLabel(`CHAIN ×${cascade}`, `+${score}`, this.reefTheme.phaser.accent);
     }
 
     let gain = summary.cleared * 4 + summary.specialCleared * 3 + cascade * 3;
@@ -195,7 +257,7 @@ export class SceneLevel extends Phaser.Scene {
     this.showPatternLabel(
       `FIBONACCI FLOW · ${cascade}`,
       `+${bonus}`,
-      0xffdc7a,
+      this.reefTheme.phaser.gold,
       1.1
     );
   }
@@ -229,10 +291,10 @@ export class SceneLevel extends Phaser.Scene {
 
   private matchRipple(x: number, y: number, pattern: MatchSummary["pattern"]) {
     const colors: Record<MatchSummary["pattern"], number> = {
-      match: 0x6affef,
-      pulse: 0x6ad9ff,
-      golden: 0xffd36e,
-      symmetry: 0xe58cff,
+      match: this.reefTheme.phaser.accent,
+      pulse: this.reefTheme.phaser.accentAlt,
+      golden: this.reefTheme.phaser.gold,
+      symmetry: this.reefTheme.phaser.violet,
     };
     const color = colors[pattern];
 
@@ -344,7 +406,7 @@ export class SceneLevel extends Phaser.Scene {
     this.reefBloomCount += 1;
     const graphics = this.add.graphics();
     graphics.setDepth(-8);
-    const colors = [0xff8e83, 0x7cfff0, 0xffd36f, 0xd08cff];
+    const colors = this.reefTheme.phaser.coralSignature;
     const color = colors[(this.reefBloomCount - 1) % colors.length];
     const baseX = this.reefBloomCount % 2 === 0
       ? this.screenWidth - 92 * constant.SCALE
@@ -394,7 +456,7 @@ export class SceneLevel extends Phaser.Scene {
         centerX,
         centerY,
         (2.5 + (i % 4)) * constant.SCALE,
-        i % 3 === 0 ? 0xffd873 : 0x7dfff1,
+        i % 3 === 0 ? this.reefTheme.phaser.gold : this.reefTheme.phaser.accent,
         0.74
       );
       this.tweens.add({
@@ -508,6 +570,12 @@ export class SceneLevel extends Phaser.Scene {
   }
 
   create() {
+    this.ambientBubbles = [];
+    this.reefTheme = getSavedTheme();
+    window.addEventListener(THEME_EVENT, this.onThemeChange);
+    this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
+      window.removeEventListener(THEME_EVENT, this.onThemeChange);
+    });
     this.background();
     this.ambientGeometry();
     this.fish();
@@ -549,7 +617,7 @@ export class SceneLevel extends Phaser.Scene {
       this.screenHeight / 2,
       this.screenWidth,
       this.screenHeight,
-      0x00131f,
+      this.reefTheme.phaser.vignette,
       0.62
     );
     shade.setInteractive();
@@ -560,8 +628,8 @@ export class SceneLevel extends Phaser.Scene {
     const cardY = this.screenHeight / 2;
 
     const card = this.add.graphics();
-    card.fillStyle(0x05293b, 0.96);
-    card.lineStyle(Math.max(1, 3 * constant.SCALE), success ? 0x70ffe9 : 0xff8b8b, 0.75);
+    card.fillStyle(this.reefTheme.phaser.panel, 0.96);
+    card.lineStyle(Math.max(1, 3 * constant.SCALE), success ? this.reefTheme.phaser.success : this.reefTheme.phaser.failure, 0.75);
     card.fillRoundedRect(cardX - cardWidth / 2, cardY - cardHeight / 2, cardWidth, cardHeight, 44 * constant.SCALE);
     card.strokeRoundedRect(cardX - cardWidth / 2, cardY - cardHeight / 2, cardWidth, cardHeight, 44 * constant.SCALE);
 
@@ -569,7 +637,7 @@ export class SceneLevel extends Phaser.Scene {
       fontFamily: "Arial, sans-serif",
       fontSize: `${26 * constant.SCALE}px`,
       fontStyle: "bold",
-      color: success ? "#86FFF0" : "#FFB1B1",
+      color: this.colorHex(success ? this.reefTheme.phaser.accent : this.reefTheme.phaser.failure),
     });
     eyebrow.setOrigin(0.5);
 
@@ -586,14 +654,14 @@ export class SceneLevel extends Phaser.Scene {
       fontFamily: "Arial, sans-serif",
       fontSize: `${38 * constant.SCALE}px`,
       fontStyle: "bold",
-      color: success ? "#FFD77A" : "#DDFBFF",
+      color: this.colorHex(success ? this.reefTheme.phaser.gold : this.reefTheme.phaser.accentAlt),
     });
     scoreText.setOrigin(0.5);
 
     const verse = this.add.text(cardX, cardY + 46 * constant.SCALE, success ? reefVerses[(this.levelCount - 1) % reefVerses.length] : "Change the pattern. Find another flow.", {
       fontFamily: "Arial, sans-serif",
       fontSize: `${28 * constant.SCALE}px`,
-      color: "#B8DCE5",
+      color: this.colorHex(this.reefTheme.phaser.muted),
       align: "center",
       wordWrap: { width: cardWidth * 0.75 },
     });
@@ -604,10 +672,10 @@ export class SceneLevel extends Phaser.Scene {
       cardY + 210 * constant.SCALE,
       420 * constant.SCALE,
       112 * constant.SCALE,
-      success ? 0x17cdbb : 0x1b9abd,
+      success ? this.reefTheme.phaser.accent : this.reefTheme.phaser.accentAlt,
       1
     );
-    button.setStrokeStyle(Math.max(1, 2 * constant.SCALE), 0xbafff7, 0.55);
+    button.setStrokeStyle(Math.max(1, 2 * constant.SCALE), this.reefTheme.phaser.accentAlt, 0.55);
     button.setInteractive({ useHandCursor: true });
 
     const buttonText = this.add.text(
@@ -673,18 +741,19 @@ export class SceneLevel extends Phaser.Scene {
     const background = this.add.image(this.screenWidth / 2, this.screenHeight / 2, constant.TEXTURE_KEY_BACKGROUND);
     const scale = Math.max(this.screenWidth / background.width, this.screenHeight / background.height);
     background.setScale(scale);
-    background.setTint(0xd8ffff);
     background.setDepth(-30);
+    this.backgroundImage = background;
 
     const vignette = this.add.graphics();
     vignette.setDepth(-20);
-    vignette.fillStyle(0x00121d, 0.17);
-    vignette.fillRect(0, 0, this.screenWidth, this.screenHeight);
+    this.vignetteGraphics = vignette;
+    this.applyThemeToEnvironment();
   }
 
   private ambientGeometry() {
     const field = this.add.graphics();
     field.setDepth(-16);
+    this.ambientFieldGraphics = field;
     const centerX = this.screenWidth * 0.77;
     const centerY = 220 * constant.SCALE;
     const goldenAngle = Phaser.Math.DegToRad(137.507764);
@@ -694,13 +763,14 @@ export class SceneLevel extends Phaser.Scene {
       const angle = goldenAngle * i;
       const x = centerX + Math.cos(angle) * radius;
       const y = centerY + Math.sin(angle) * radius;
-      field.fillStyle(i % 5 === 0 ? 0xffd57a : 0x86fff2, i % 5 === 0 ? 0.18 : 0.11);
+      field.fillStyle(i % 5 === 0 ? this.reefTheme.phaser.gold : this.reefTheme.phaser.accent, i % 5 === 0 ? 0.18 : 0.11);
       field.fillCircle(x, y, Math.max(1, (2 + (i % 3)) * constant.SCALE));
     }
 
     const ray = this.add.graphics();
     ray.setDepth(-17);
-    ray.fillStyle(0xa9fff8, 0.035);
+    this.ambientRayGraphics = ray;
+    ray.fillStyle(this.reefTheme.phaser.ray, 0.035);
     ray.fillTriangle(
       this.screenWidth * 0.22,
       0,
@@ -715,10 +785,11 @@ export class SceneLevel extends Phaser.Scene {
         Phaser.Math.Between(40, Math.max(41, Math.floor(this.screenWidth - 40))),
         Phaser.Math.Between(Math.floor(this.screenHeight * 0.32), Math.floor(this.screenHeight * 0.92)),
         Phaser.Math.Between(2, 6) * constant.SCALE,
-        0xb9fffb,
+        this.reefTheme.phaser.bubble,
         0.16
       );
       bubble.setDepth(-14);
+      this.ambientBubbles.push(bubble);
       this.tweens.add({
         targets: bubble,
         y: -20,
@@ -789,7 +860,7 @@ export class SceneLevel extends Phaser.Scene {
     const back = this.add.text(58 * constant.SCALE, 54 * constant.SCALE, "‹", {
       fontFamily: "Arial, sans-serif",
       fontSize: `${72 * constant.SCALE}px`,
-      color: "#E7FFFF",
+      color: this.colorHex(this.reefTheme.phaser.accentAlt),
     });
     back.setOrigin(0.5);
     back.setInteractive({ useHandCursor: true });
@@ -829,8 +900,8 @@ export class SceneLevel extends Phaser.Scene {
 
   private hud() {
     const topPanel = this.add.graphics();
-    topPanel.fillStyle(0x041c2a, 0.57);
-    topPanel.lineStyle(Math.max(1, 2 * constant.SCALE), 0x76fff1, 0.18);
+    topPanel.fillStyle(this.reefTheme.phaser.panel, 0.57);
+    topPanel.lineStyle(Math.max(1, 2 * constant.SCALE), this.reefTheme.phaser.panelLine, 0.18);
     topPanel.fillRoundedRect(126 * constant.SCALE, 80 * constant.SCALE, 918 * constant.SCALE, 205 * constant.SCALE, 40 * constant.SCALE);
     topPanel.strokeRoundedRect(126 * constant.SCALE, 80 * constant.SCALE, 918 * constant.SCALE, 205 * constant.SCALE, 40 * constant.SCALE);
 
@@ -838,7 +909,7 @@ export class SceneLevel extends Phaser.Scene {
       fontFamily: "Arial, sans-serif",
       fontSize: `${24 * constant.SCALE}px`,
       fontStyle: "bold",
-      color: "#7EF7EC",
+      color: this.colorHex(this.reefTheme.phaser.accent),
     });
     this.levelText.setOrigin(0.5);
 
@@ -846,7 +917,7 @@ export class SceneLevel extends Phaser.Scene {
       fontFamily: "Arial, sans-serif",
       fontSize: `${23 * constant.SCALE}px`,
       fontStyle: "bold",
-      color: "#77BCC7",
+      color: this.colorHex(this.reefTheme.phaser.muted),
     });
     scoreLabel.setOrigin(0, 0.5);
 
@@ -862,7 +933,7 @@ export class SceneLevel extends Phaser.Scene {
       fontFamily: "Arial, sans-serif",
       fontSize: `${23 * constant.SCALE}px`,
       fontStyle: "bold",
-      color: "#77BCC7",
+      color: this.colorHex(this.reefTheme.phaser.muted),
     });
     movesLabel.setOrigin(1, 0.5);
 
@@ -878,7 +949,7 @@ export class SceneLevel extends Phaser.Scene {
       fontFamily: "Arial, sans-serif",
       fontSize: `${20 * constant.SCALE}px`,
       fontStyle: "bold",
-      color: "#82D9D8",
+      color: this.colorHex(this.reefTheme.phaser.muted),
     });
     this.bloomLabel.setOrigin(0.5);
 
@@ -887,7 +958,7 @@ export class SceneLevel extends Phaser.Scene {
       538 * constant.SCALE,
       760 * constant.SCALE,
       8 * constant.SCALE,
-      0x6be9e5,
+      this.reefTheme.phaser.accent,
       0.13
     );
     bloomTrack.setOrigin(0.5);
@@ -897,7 +968,7 @@ export class SceneLevel extends Phaser.Scene {
       538 * constant.SCALE,
       1,
       8 * constant.SCALE,
-      0xffd46e,
+      this.reefTheme.phaser.gold,
       0.95
     );
     this.bloomBarFill.setOrigin(0, 0.5);
