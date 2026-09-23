@@ -13,7 +13,7 @@
 .ocean-card {
   aspect-ratio: 1;
   border-radius: 17px;
-  border: 1px solid rgba(113, 255, 240, .18);
+  border: 1px solid var(--reef-soft-line);
   background: rgba(5, 64, 77, .56);
   color: #eafffc;
   cursor: pointer;
@@ -56,7 +56,7 @@
   place-items: center;
   border-radius: 50%;
   border: 1px solid rgba(255, 211, 113, .3);
-  color: #ffd371;
+  color: var(--reef-gold);
   font-size: 34px;
 }
 
@@ -73,7 +73,7 @@
   border-radius: 999px;
   padding: 10px 17px;
   background: rgba(7, 84, 91, .44);
-  color: #cffff8;
+  color: var(--reef-ink-soft);
   cursor: pointer;
   font: 800 9px/1 Inter, system-ui, sans-serif;
   letter-spacing: .15em;
