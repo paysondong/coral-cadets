@@ -1,4 +1,10 @@
-# CoralCadet — Pattern Reef
+# CoralCadets
+
+**A coral-themed match-3 web game.**
+
+> Current release: **v0.2.0 — Reef Skins (Stage 1)**
+>
+> This release adds lightweight player-selectable visual themes while preserving the existing gameplay and assets. See `RELEASE_NOTES_v0.2.0.md` and `STAGE_ROADMAP.md`.
 
 这是在原始《珊瑚消消乐 / CoralCadet》代码上**直接升级**的版本，不是另起炉灶的新项目。
 
@@ -55,6 +61,7 @@ src/game/
 ├── LevelUtils.ts         # 原三消交换/掉落逻辑的升级版
 ├── PatternEngine.ts      # 纯数学匹配分析：4/5连、十字、可行交换
 ├── Layout.ts             # 手机/桌面统一纵向画布
+├── theme/                # Stage 1: lightweight reef skins + local preference
 ├── Level1.ts ... Level9.ts
 └── menu/                 # 极简游戏入口菜单
 ```
@@ -63,12 +70,4 @@ src/game/
 
 ## 版本
 
-`0.2.0 — Original Direct Upgrade`
-
-## Release history
-
-The original version is preserved in [v0.1.0](https://github.com/paysondong/coral-cadets/releases/tag/v0.1.0).
-
-## Licensing
-
-No open-source license is attached yet. The code and media are publicly viewable, but reuse rights have not been granted.
+`0.2.0 — Reef Skins (Stage 1)`
