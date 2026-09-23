@@ -15,8 +15,8 @@
   width: min(100%, 410px);
   padding: 34px 28px 30px;
   border-radius: 28px;
-  border: 1px solid rgba(126, 255, 242, .21);
-  color: #efffff;
+  border: 1px solid var(--reef-soft-line);
+  color: var(--reef-ink-soft);
   text-align: left;
   background:
     radial-gradient(circle at 80% 0%, rgba(255, 209, 105, .1), transparent 34%),
@@ -39,7 +39,7 @@
 }
 
 .reef-modal__eyebrow {
-  color: #7ef8eb;
+  color: var(--reef-aqua);
   font: 800 10px/1.2 Inter, system-ui, sans-serif;
   letter-spacing: .23em;
   margin-bottom: 14px;
@@ -59,7 +59,7 @@
 
 .reef-about__formula {
   margin-top: 26px;
-  color: #ffd371;
+  color: var(--reef-gold);
   font: 800 11px/1 Inter, system-ui, sans-serif;
   letter-spacing: .19em;
 }
