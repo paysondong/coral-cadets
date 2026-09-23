@@ -1,0 +1,74 @@
+.reef-skins {
+  position: relative;
+  z-index: 2;
+  width: min(92%, 360px);
+  margin-top: 20px;
+}
+
+.reef-skins__label {
+  margin-bottom: 8px;
+  color: var(--reef-muted-soft);
+  font: 700 8px/1 Inter, ui-sans-serif, system-ui, sans-serif;
+  letter-spacing: .2em;
+}
+
+.reef-skins__options {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 7px;
+}
+
+.reef-skin {
+  appearance: none;
+  min-width: 0;
+  min-height: 44px;
+  border: 1px solid var(--reef-soft-line);
+  border-radius: 15px;
+  background: var(--reef-panel-soft);
+  color: var(--reef-muted);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  cursor: pointer;
+  font: 700 8px/1 Inter, ui-sans-serif, system-ui, sans-serif;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  transition: transform .14s ease, border-color .14s ease, color .14s ease, background .14s ease;
+}
+
+.reef-skin:hover {
+  transform: translateY(-1px);
+  color: var(--reef-ink-soft);
+  border-color: var(--reef-accent-line);
+}
+
+.reef-skin--active {
+  color: var(--reef-ink-soft);
+  border-color: var(--reef-accent-line-strong);
+  background: var(--reef-panel-active);
+  box-shadow: inset 0 0 0 1px var(--reef-accent-inset);
+}
+
+.reef-skin__swatches {
+  display: flex;
+  gap: 3px;
+}
+
+.reef-skin__swatches i {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  box-shadow: 0 0 8px rgba(255,255,255,.08);
+}
+
+@media (max-height: 760px) {
+  .reef-skins {
+    margin-top: 13px;
+  }
+
+  .reef-skin {
+    min-height: 38px;
+  }
+}
