@@ -1,73 +1,79 @@
 # CoralCadets
 
-**A coral-themed match-3 web game.**
+**A coral-themed match-3 game, started in seventh grade and still growing.**
 
-> Current release: **v0.2.0 — Reef Skins (Stage 1)**
->
-> This release adds lightweight player-selectable visual themes while preserving the existing gameplay and assets. See `RELEASE_NOTES_v0.2.0.md` and `STAGE_ROADMAP.md`.
+## It started with an actual coral
 
-这是在原始《珊瑚消消乐 / CoralCadet》代码上**直接升级**的版本，不是另起炉灶的新项目。
+In seventh grade, I joined a coral adoption program while visiting the St. Regis in the Maldives. I got to place my adopted coral underwater myself. After the trip, the nonprofit involved in the program sent regular updates, so I could keep following what happened to it.
 
-## 这版的设计原则
+It is surprisingly easy to get attached to something that does not text you back.
 
-- **先好玩**：仍然是 9 关三消游戏，保留原有海洋角色、垃圾元素、鱼群动画、音效和关卡形状。
-- **艺术性藏在反馈里**：深海玻璃 UI、生物荧光、黄金角粒子、珊瑚生长签名、连锁波纹。
-- **数学藏在玩法里**：玩家不需要上课，也不需要读公式；4 连、5 连、十字、3→5→8 连锁会自然触发不同的视觉与奖励。
-- **生态藏在世界里**：漂亮的连锁会让背景珊瑚继续“长出来”，而不是要求玩家管理 pH、氧气和仪表盘。
+That experience got me interested in coral reefs, and I made a very simple game that same year. As I learned more about ecology, I kept wanting to improve it. Eventually, that little game grew into this repository.
 
-## 新玩法
+## Why a game?
 
-- 3 连：普通 Match
-- 4 连：`PULSE`，会额外清除邻接单元
-- 5 连及以上：`φ BLOOM`，产生更大的局部爆发
-- 十字 / T 型结构：`SYMMETRY WAVE`
-- 连锁深度到 3 / 5 / 8：`FIBONACCI FLOW`
-- Bloom 能量满：触发 `REEF BLOOM`，获得额外分数并让背景珊瑚生长
-- 无效交换：**不扣步数**
-- 完成目标：**立即过关**，不需要把剩余步数耗完
-- 支持滑动交换，也支持点选两个相邻元素交换
-- 棋盘无可走步骤时会自动 `CURRENT SHIFT`
+I'm Payson, and I'm now in tenth grade. I've loved art and nature since I was little, and I love math too. Architecture has become another way for me to explore how those interests fit together: shapes, patterns, living things, and the spaces around them.
 
-## 运行
+CoralCadets is one place where I can play with those connections. What if a chain reaction followed the numbers 3, 5, and 8? What if matching a pattern made the reef behind the board grow? I like seeing what happens when a slightly odd idea becomes something you can actually click.
 
-推荐 Node.js 18+。
+I want the game to be fun first. The math shows up in patterns and visual effects, and the reef gives it a world to belong to. The coral growth on screen is imaginary; this is a game inspired by my interest in reefs, not a model of how real reefs recover.
+
+## What's in the game?
+
+The current version builds on the original game, keeping its nine levels, ocean characters, debris tiles, fish animations, sounds, and board shapes.
+
+- **Match 3:** make a regular match.
+- **Match 4:** trigger `PULSE` to clear neighboring cells.
+- **Match 5 or more:** trigger `φ BLOOM` for a larger local burst.
+- **Make a cross or T:** trigger `SYMMETRY WAVE`.
+- **Reach a chain depth of 3, 5, or 8:** activate `FIBONACCI FLOW`.
+- **Fill the Bloom meter:** trigger `REEF BLOOM` for extra points and background coral growth.
+- **Choose a reef skin:** change the visual theme.
+
+Swap tiles by swiping or selecting two neighboring tiles. Invalid swaps do not cost a move, and completing the goal ends the level immediately. If the board has no available moves, `CURRENT SHIFT` reshuffles it.
+
+## A growing project
+
+The original game began in seventh grade. This repository is where I'm continuing to develop it as my interests and understanding grow.
+
+I use AI tools to help develop the project. The code includes AI-assisted work, so it should not be read as code I wrote entirely on my own. The coral adoption experience and the interests behind the project are mine. As I keep working on it, I want to get better at understanding the code, testing changes, and explaining why a design works—or why it doesn't.
+
+My next questions are about the experience of playing: do the patterns make sense to someone seeing them for the first time? Do the effects help players follow a chain reaction? How can the reef feel more alive without making the board harder to read?
+
+## Run locally
+
+Recommended: Node.js 18 or newer.
 
 ```bash
 npm install
 npm start
 ```
 
-浏览器打开：
+Open `http://localhost:3000` in your browser. Desktop and mobile use the same responsive game entry point.
 
-```text
-http://localhost:3000
-```
-
-现在桌面和手机共用同一个响应式游戏入口，不再跳转到旧的 `desktop.html` iframe。
-
-生产构建：
+To create a production build:
 
 ```bash
 npm run build
 ```
 
-## 代码重点
+## Find your way around the code
 
 ```text
 src/game/
-├── Game.tsx              # 原入口直接升级后的启动界面
-├── SceneLevel.ts         # 游戏 HUD、视觉反馈、胜负界面、Bloom
-├── Level.ts              # 原关卡结构 + 关卡色彩组合 / 目标
-├── LevelUtils.ts         # 原三消交换/掉落逻辑的升级版
-├── PatternEngine.ts      # 纯数学匹配分析：4/5连、十字、可行交换
-├── Layout.ts             # 手机/桌面统一纵向画布
-├── theme/                # Stage 1: lightweight reef skins + local preference
+├── Game.tsx              # Game entry screen
+├── SceneLevel.ts         # HUD, visual effects, win/loss screens, and Bloom
+├── Level.ts              # Level structure, color combinations, and goals
+├── LevelUtils.ts         # Tile swapping and falling logic
+├── PatternEngine.ts      # Match patterns and available-move checks
+├── Layout.ts             # Shared portrait layout for mobile and desktop
+├── theme/                # Reef skins and locally saved theme preference
 ├── Level1.ts ... Level9.ts
-└── menu/                 # 极简游戏入口菜单
+└── menu/                 # Game menu
 ```
 
-原始图片和音频资源仍在 `public/images` 与 `public/audio` 中继续使用。
+The original image and audio assets remain in `public/images` and `public/audio`.
 
-## 版本
+## Current version
 
-`0.2.0 — Reef Skins (Stage 1)`
+**v0.2.0 — Reef Skins (Stage 1)** adds lightweight, player-selectable visual themes while preserving the existing gameplay and assets. See [release notes](RELEASE_NOTES_v0.2.0.md) and the [roadmap](STAGE_ROADMAP.md).
